@@ -83,6 +83,7 @@ type component_kind* = enum
   Input4
   Input1BConditions
   Input1B
+  InputQword
   Input1BCode
   Input1_1B
   Output1
@@ -94,6 +95,7 @@ type component_kind* = enum
   Output3
   Output4
   Output1B
+  OutputQword
   Output1_1B
   OutputCounter
   InputOutput
@@ -131,7 +133,6 @@ proc parse_state*(input: string): (seq[parse_component], seq[parse_circuit], uin
 
   let parts = input.split("|")
   if parts.len notin [4, 5]:
-    #log("Load state broken")
     return
   let version = parseInt(parts[0])
   var nand = 99999.uint32
@@ -146,7 +147,6 @@ proc parse_state*(input: string): (seq[parse_component], seq[parse_circuit], uin
           var comp_parts = comp_string.split("`")
 
           if comp_parts.len != 6:
-            #log("broken component " & comp_parts.join(", "))
             continue
           
           try:
@@ -158,7 +158,6 @@ proc parse_state*(input: string): (seq[parse_component], seq[parse_circuit], uin
               custom_string: comp_parts[5]
             ))
           except:
-            #log("Error loading " & comp_parts[0])
             discard
 
       var next_circuit_id = 1
@@ -169,7 +168,6 @@ proc parse_state*(input: string): (seq[parse_component], seq[parse_circuit], uin
           let circ_parts = circ_string.split("`")
 
           if circ_parts.len != 4: 
-            #log("broken circuit " & circ_parts.join(", "))
             continue
 
           var path = newSeq[point]()
@@ -203,7 +201,6 @@ proc parse_state*(input: string): (seq[parse_component], seq[parse_circuit], uin
           var comp_parts = comp_string.split("`")
 
           if comp_parts.len != 6:
-            #print("broken component " & comp_parts.join(", "))
             continue
 
           try:
@@ -215,7 +212,6 @@ proc parse_state*(input: string): (seq[parse_component], seq[parse_circuit], uin
               custom_string: comp_parts[5]
             ))
           except:
-            #print("Error loading " & comp_parts[0])
             discard
 
       if parts[2] != "":
@@ -225,7 +221,6 @@ proc parse_state*(input: string): (seq[parse_component], seq[parse_circuit], uin
           let circ_parts = circ_string.split("`")
 
           if circ_parts.len != 5: 
-            #log("broken circuit " & circ_parts.join(", "))
             continue
 
           var path = newSeq[point]()
