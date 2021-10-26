@@ -52,6 +52,7 @@ type component_kind* = enum
   ByteAdd
   ByteAdd2
   ByteMul
+  ByteMul2
   ByteSplitter
   ByteMaker
   QwordSplitter
