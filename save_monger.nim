@@ -98,11 +98,7 @@ type component_kind* = enum
   InputOutput             = 91
   Custom                  = 92
   VirtualCustom           = 93
-
-  ByteLess                = 94
-  ByteAdd                 = 95
-  ByteMul                 = 96
-  FlipFlop                = 97
+  QwordProgram            = 94
 
 const virtual_kinds* = [VirtualCustom, VirtualRegister, VirtualQwordRegister, VirtualBitMemory, VirtualCounter, VirtualQwordCounter, VirtualStack, VirtualRam, VirtualQwordRam, VirtualRegisterRedPlus, VirtualRegisterRed]
 
@@ -123,7 +119,8 @@ type parse_component* = object
   permanent_id*: uint32
   custom_string*: string
   custom_id*: int
-  program_name*: string
+  program_name*: string # If this has len 0, we use program_data instead
+  program_data*: seq[uint8]
 
 type parse_circuit* = object
   permanent_id*: uint32
@@ -138,8 +135,8 @@ type parse_result* = object
   save_version*: int
   nand*: uint32
   delay*: uint32
-  custom_visible*: bool
-  scale_level*: uint8
+  menu_visible*: bool
+  nesting_level*: uint8
   clock_speed*: uint32
   dependencies*: seq[int]
   description*: string
@@ -160,21 +157,116 @@ proc file_get_bytes*(file_name: string): seq[uint8] =
 
   let len = getFileSize(file)
   var buffer = newSeq[uint8](len)
+  if len == 0: return buffer
   discard file.readBytes(buffer, 0, len)
   return buffer
 
 # Backwards compatability November 2021
 proc to_custom_id*(input: string): int =
-  if input[0] in "/\\":
-    return abs(hash(input[1..^1]))
+  var name = input
+  name = name.split('/')[^1]
+  name = name.split('\\')[^1]
   return abs(hash(input))
 
+proc get_bool*(input: seq[uint8], i: var int): bool =
+  result = input[i] != 0
+  i += 1
+
+proc get_int*(input: seq[uint8], i: var int): int =
+  result =  input[i+0].int shl 0 +
+            input[i+1].int shl 8 +
+            input[i+2].int shl 16 +
+            input[i+3].int shl 24 +
+            input[i+4].int shl 32 +
+            input[i+5].int shl 40 +
+            input[i+6].int shl 48 +
+            input[i+7].int shl 56
+  i += 8
+
+proc get_u64*(input: seq[uint8], i: var int): uint64 =
+  result = cast[uint64](get_int(input, i))
+
+proc get_u32*(input: seq[uint8], i: var int): uint32 =
+  result =  input[i+0].uint32 shl 0 +
+            input[i+1].uint32 shl 8 +
+            input[i+2].uint32 shl 16 +
+            input[i+3].uint32 shl 24
+  i += 4
+
+proc get_u16*(input: seq[uint8], i: var int): uint16 =
+  result =  input[i+0].uint16 shl 0 +
+            input[i+1].uint16 shl 8
+  i += 2
+
+proc get_u8*(input: seq[uint8], i: var int): uint8 =
+  result = input[i]
+  i += 1
+
+proc get_i8*(input: seq[uint8], i: var int): int8 =
+  result = cast[int8](input[i])
+  i += 1
+
+proc get_seq_i64*(input: seq[uint8], i: var int): seq[int] =
+  let len = get_int(input, i)
+  for j in 0..len - 1:
+    result.add(get_int(input, i))
+
+proc get_string*(input: seq[uint8], i: var int): string =
+  let len = get_int(input, i)
+  for j in 0..len - 1:
+    result.add(chr(get_u8(input, i)))
+
+proc get_point*(input: seq[uint8], i: var int): point =
+  return point(
+    x: get_i8(input, i).int16, 
+    y: get_i8(input, i).int16
+  )
+
+proc get_seq_point*(input: seq[uint8], i: var int): seq[point] =
+  let len = get_int(input, i)
+  for j in 0..len - 1:
+    result.add(get_point(input, i))
+
+proc get_component*(input: seq[uint8], i: var int): parse_component =
+  try: # Only fails for obsolete components (deleted enum values)
+    result = parse_component(kind: component_kind(get_u16(input, i).int))
+  except: discard
+  result.position = get_point(input, i)
+  result.rotation = get_u8(input, i)
+  result.permanent_id = get_u32(input, i)
+  result.custom_string = get_string(input, i)
+  if result.kind in [Program1, Program2, Program3, Program4, QwordProgram]:
+    result.program_name = get_string(input, i)
+  elif result.kind == Custom:
+    result.custom_id = get_int(input, i)
+
+proc get_components*(input: seq[uint8], i: var int): seq[parse_component] =
+  let len = get_int(input, i)
+  for j in 0..len - 1:
+    let comp = get_component(input, i)
+    if comp.kind == Error: continue
+    result.add(comp)
+
+proc get_circuit*(input: seq[uint8], i: var int): parse_circuit =
+  result.permanent_id = get_u32(input, i)
+  result.kind = circuit_kind(get_u8(input, i))
+  result.color = get_u8(input, i)
+  result.comment = get_string(input, i)
+  result.path = get_seq_point(input, i)
+
+proc get_circuits*(input: seq[uint8], i: var int): seq[parse_circuit] =
+  let len = get_int(input, i)
+  for j in 0..len - 1:
+    result.add(get_circuit(input, i))
+
 proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
-  var version = input[0]
   result.nand = 99999.uint32
   result.delay = 99999.uint32
-  result.clock_speed = 100.uint32
-  result.custom_visible = true
+  result.clock_speed = 1000.uint32
+  result.menu_visible = true
+  if input.len == 0: return
+
+  var version = input[0]
 
   case version:
     of 48: # 0 in ascii
@@ -310,102 +402,18 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
     of 0:
       var i = 1 # 0th byte is version
 
-      proc get_bool(): bool =
-        result = input[i] != 0
-        i += 1
-
-      proc get_int(): int =
-        result =  input[i+0].int shl 0 +
-                  input[i+1].int shl 8 +
-                  input[i+2].int shl 16 +
-                  input[i+3].int shl 24 +
-                  input[i+4].int shl 32 +
-                  input[i+5].int shl 40 +
-                  input[i+6].int shl 48 +
-                  input[i+7].int shl 56
-        i += 8
-
-      proc get_u32(): uint32 =
-        result =  input[i+0].uint32 shl 0 +
-                  input[i+1].uint32 shl 8 +
-                  input[i+2].uint32 shl 16 +
-                  input[i+3].uint32 shl 24
-        i += 4
-      
-      proc get_u16(): uint16 =
-        result =  input[i+0].uint16 shl 0 +
-                  input[i+1].uint16 shl 8
-        i += 2
-      
-      proc get_u8(): uint8 =
-        result = input[i]
-        i += 1
-      
-      proc get_i8(): int8 =
-        result = cast[int8](input[i])
-        i += 1
-      
-      proc get_seq_i64(): seq[int] =
-        let len = get_int()
-        for i in 0..len - 1:
-          result.add(get_int())
-
-      proc get_string(): string =
-        let len = get_int()
-        for i in 0..len - 1:
-          result.add(chr(get_u8()))
-
-      proc get_point(): point =
-        return point(
-          x: get_i8().int16, 
-          y: get_i8().int16
-        )
-
-      proc get_seq_point(): seq[point] =
-        let len = get_int()
-        for i in 0..len - 1:
-          result.add(get_point())
-
-      proc get_component(): parse_component =
-        result = parse_component(kind: component_kind(get_u16().int))
-        result.position = get_point()
-        result.rotation = get_u8()
-        result.permanent_id = get_u32()
-        result.custom_string = get_string()
-        if result.kind in [Program1, Program2, Program3, Program4]:
-          result.program_name = get_string()
-        elif result.kind == Custom:
-          result.custom_id = get_int()
-
-      proc get_components(): seq[parse_component] =
-        let len = get_int()
-        for i in 0..len - 1:
-          result.add(get_component())
-
-      proc get_circuit(): parse_circuit =
-        result.permanent_id = get_u32()
-        result.kind = circuit_kind(get_u8())
-        result.color = get_u8()
-        result.comment = get_string()
-        result.path = get_seq_point()
-
-      proc get_circuits(): seq[parse_circuit] =
-        let len = get_int()
-        for i in 0..len - 1:
-          result.add(get_circuit())
-
-      result.save_version = get_int()
-      result.nand = get_u32()
-      result.delay = get_u32()
-      result.custom_visible = get_bool()
-      result.clock_speed = get_u32()
-      result.scale_level = get_u8()
-      result.dependencies = get_seq_i64()
-      result.description = get_string()
+      result.save_version = get_int(input, i)
+      result.nand = get_u32(input, i)
+      result.delay = get_u32(input, i)
+      result.menu_visible = get_bool(input, i)
+      result.clock_speed = get_u32(input, i)
+      result.nesting_level = get_u8(input, i)
+      result.dependencies = get_seq_i64(input, i)
+      result.description = get_string(input, i)
 
       if not meta_only:
-        result.components = get_components()
-        result.circuits = get_circuits()
+        result.components = get_components(input, i)
+        result.circuits = get_circuits(input, i)
 
     else: discard
 
@@ -421,6 +429,9 @@ proc add_bytes*(arr: var seq[uint8], input: int) =
   arr.add(cast[uint8]((input shr 40) and 0xff))
   arr.add(cast[uint8]((input shr 48) and 0xff))
   arr.add(cast[uint8]((input shr 56) and 0xff))
+
+proc add_bytes*(arr: var seq[uint8], input: uint64) =
+  add_bytes(arr, cast[int](input))
 
 proc add_bytes*(arr: var seq[uint8], input: uint32) =
   arr.add(cast[uint8]((input shr 0)  and 0xff))
@@ -471,6 +482,7 @@ proc add_bytes(arr: var seq[uint8], component: parse_component) =
     of Program2: arr.add_bytes(component.program_name)
     of Program3: arr.add_bytes(component.program_name)
     of Program4: arr.add_bytes(component.program_name)
+    of QwordProgram: arr.add_bytes(component.program_name)
     of Custom:   arr.add_bytes(component.custom_id)
     else: discard
 
@@ -481,7 +493,7 @@ proc add_bytes(arr: var seq[uint8], circuit: parse_circuit) =
   arr.add_bytes(circuit.comment)
   arr.add_bytes(circuit.path)
 
-proc state_to_binary*(save_version: int, components: seq[parse_component], circuits: seq[parse_circuit], nand: uint32, delay: uint32, custom_visible: bool, scale_level: uint8, description: string): seq[uint8] =
+proc state_to_binary*(save_version: int, components: seq[parse_component], circuits: seq[parse_circuit], nand: uint32, delay: uint32, menu_visible: bool, nesting_level: uint8, description: string): seq[uint8] =
   var dependencies: seq[int]
 
   var components_to_save: seq[int]
@@ -497,9 +509,9 @@ proc state_to_binary*(save_version: int, components: seq[parse_component], circu
   result.add_bytes(save_version)
   result.add_bytes(nand)
   result.add_bytes(delay)
-  result.add_bytes(custom_visible)
-  result.add_bytes(100.uint32) # Eventually save clock speed here, needed for sharable sandbox schematics
-  result.add_bytes(scale_level)
+  result.add_bytes(menu_visible)
+  result.add_bytes(1000.uint32) # Eventually save clock speed here, needed for sharable sandbox schematics
+  result.add_bytes(nesting_level)
 
   result.add_bytes(dependencies)
 
