@@ -262,7 +262,7 @@ proc get_circuits*(input: seq[uint8], i: var int): seq[parse_circuit] =
 proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
   result.nand = 99999.uint32
   result.delay = 99999.uint32
-  result.clock_speed = 1000.uint32
+  result.clock_speed = 100000.uint32
   result.menu_visible = true
   if input.len == 0: return
 
@@ -493,7 +493,7 @@ proc add_bytes(arr: var seq[uint8], circuit: parse_circuit) =
   arr.add_bytes(circuit.comment)
   arr.add_bytes(circuit.path)
 
-proc state_to_binary*(save_version: int, components: seq[parse_component], circuits: seq[parse_circuit], nand: uint32, delay: uint32, menu_visible: bool, nesting_level: uint8, description: string): seq[uint8] =
+proc state_to_binary*(save_version: int, components: seq[parse_component], circuits: seq[parse_circuit], nand: uint32, delay: uint32, menu_visible: bool, clock_speed: uint32, nesting_level: uint8, description: string): seq[uint8] =
   var dependencies: seq[int]
 
   var components_to_save: seq[int]
@@ -510,11 +510,9 @@ proc state_to_binary*(save_version: int, components: seq[parse_component], circu
   result.add_bytes(nand)
   result.add_bytes(delay)
   result.add_bytes(menu_visible)
-  result.add_bytes(1000.uint32) # Eventually save clock speed here, needed for sharable sandbox schematics
+  result.add_bytes(clock_speed)
   result.add_bytes(nesting_level)
-
   result.add_bytes(dependencies)
-
   result.add_bytes(description)
 
   result.add_bytes(components_to_save.len)
