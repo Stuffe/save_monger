@@ -2,7 +2,6 @@ import strutils, std/hashes
 
 #{.warning[HoleEnumConv]: off.}
 
-# The order of this enum determines the order in the component panel
 type component_kind* = enum
   Error                   = 0
   Off                     = 1
@@ -17,8 +16,8 @@ type component_kind* = enum
   Nor                     = 10
   Xor                     = 11
   Xnor                    = 12
-  Counter                 = 13
-  VirtualCounter          = 14
+  ByteCounter             = 13
+  VirtualByteCounter      = 14
   QwordCounter            = 15
   VirtualQwordCounter     = 16
   Ram                     = 17
@@ -36,9 +35,9 @@ type component_kind* = enum
   QwordRegister           = 29
   VirtualQwordRegister    = 30
   ByteSwitch              = 31
-  Mux                     = 32
-  Demux                   = 33
-  BiggerDemux             = 34
+  ByteMux                 = 32
+  Decoder1                = 33
+  Decoder3                = 34
   ByteConstant            = 35
   ByteNot                 = 36
   ByteOr                  = 37
@@ -48,8 +47,8 @@ type component_kind* = enum
   ByteLessU               = 41
   ByteLessI               = 42
   ByteNeg                 = 43
-  ByteAdd2                = 44
-  ByteMul2                = 45
+  ByteAdd                 = 44
+  ByteMul                 = 45
   ByteSplitter            = 46
   ByteMaker               = 47
   QwordSplitter           = 48
@@ -63,8 +62,8 @@ type component_kind* = enum
   WaveformGenerator       = 56
   HttpClient              = 57
   AsciiScreen             = 58
-  Keyboard                = 59
-  FileInput               = 60
+  Keypad                  = 59
+  FileRom                 = 60
   Halt                    = 61
   CircuitCluster          = 62
   Screen                  = 63
@@ -99,8 +98,33 @@ type component_kind* = enum
   Custom                  = 92
   VirtualCustom           = 93
   QwordProgram            = 94
+  DelayBuffer             = 95
+  VirtualDelayBuffer      = 96
+  Console                 = 97
+  ByteShl                 = 98
+  ByteShr                 = 99
 
-const virtual_kinds* = [VirtualCustom, VirtualRegister, VirtualQwordRegister, VirtualBitMemory, VirtualCounter, VirtualQwordCounter, VirtualStack, VirtualRam, VirtualQwordRam, VirtualRegisterRedPlus, VirtualRegisterRed]
+  QwordConstant           = 100
+  QwordNot                = 101
+  QwordOr                 = 102
+  QwordAnd                = 103
+  QwordXor                = 104
+  QwordNeg                = 105
+  QwordAdd                = 106
+  QwordMul                = 107
+  QwordEqual              = 108
+  QwordLessU              = 109
+  QwordLessI              = 110
+  QwordShl                = 111
+  QwordShr                = 112
+  QwordMux                = 113
+  QwordSwitch             = 114
+
+
+
+const VIRTUAL_KINDS*  = [VirtualDelayBuffer, VirtualCustom, VirtualRegister, VirtualQwordRegister, VirtualBitMemory, VirtualByteCounter, VirtualQwordCounter, VirtualStack, VirtualRam, VirtualQwordRam, VirtualRegisterRedPlus, VirtualRegisterRed]
+const CUSTOM_INPUTS*  = [Input1, Input1B, InputQword]
+const CUSTOM_OUTPUTS* = [Output1, Output1B, OutputQword]
 
 type circuit_kind* = enum
   ck_bit
@@ -119,8 +143,7 @@ type parse_component* = object
   permanent_id*: uint32
   custom_string*: string
   custom_id*: int
-  program_name*: string # If this has len 0, we use program_data instead
-  program_data*: seq[uint8]
+  program_name*: string
 
 type parse_circuit* = object
   permanent_id*: uint32
@@ -153,12 +176,12 @@ proc to_bytes*(input: string): seq[uint8] =
 
 proc file_get_bytes*(file_name: string): seq[uint8] =
   var file = open(file_name)
-  defer: file.close
 
   let len = getFileSize(file)
   var buffer = newSeq[uint8](len)
   if len == 0: return buffer
   discard file.readBytes(buffer, 0, len)
+  file.close()
   return buffer
 
 # Backwards compatability November 2021
@@ -166,7 +189,7 @@ proc to_custom_id*(input: string): int =
   var name = input
   name = name.split('/')[^1]
   name = name.split('\\')[^1]
-  return abs(hash(input))
+  return abs(hash(name))
 
 proc get_bool*(input: seq[uint8], i: var int): bool =
   result = input[i] != 0
@@ -264,74 +287,12 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
   result.delay = 99999.uint32
   result.clock_speed = 100000.uint32
   result.menu_visible = true
+  
   if input.len == 0: return
 
   var version = input[0]
 
   case version:
-    of 48: # 0 in ascii
-      if not meta_only:
-        let parts = input.to_string.split("|")
-        if parts.len notin [4, 5]:
-          return
-        if parts[1] != "":
-          let component_strings = parts[1].split(";")
-          for comp_string in component_strings:
-            var comp_parts = comp_string.split("`")
-
-            if comp_parts.len != 6:
-              continue
-            
-            try:
-              result.components.add(parse_component(
-                kind: parseEnum[component_kind](comp_parts[0]),
-                position: point(x: parseInt(comp_parts[1]).int16, y: parseInt(comp_parts[2]).int16),
-                rotation: parseInt(comp_parts[3]).uint8,
-                permanent_id: parseInt(comp_parts[4]).uint32, 
-                custom_string: comp_parts[5]
-              ))
-              if result.components[^1].kind == Custom:
-                try:
-                  result.components[^1].custom_id = parseInt(result.components[^1].custom_string)
-                except:
-                  result.components[^1].custom_id = to_custom_id(result.components[^1].custom_string) # Old school name
-            except:
-              discard
-
-        var next_circuit_id = 1.uint32
-        if parts[2] != "":
-          let circuits_strings = parts[2].split(";")
-          
-          for circ_string in circuits_strings:
-            let circ_parts = circ_string.split("`")
-
-            if circ_parts.len != 4: 
-              continue
-
-            var path = newSeq[point]()
-            var x = 0.int16
-            var i = 0
-            if circ_parts[3] != "":
-              try:
-                for n in circ_parts[3].split(","):
-                  if i mod 2 == 0:
-                    x = parseInt(n).int16
-                  else:
-                    path.add(point(x: x, y: parseInt(n).int16))
-                  i += 1
-              except: 
-                continue
-
-              result.circuits.add(parse_circuit(
-                permanent_id: next_circuit_id,
-                path: path, 
-                kind: circuit_kind(parseInt(circ_parts[0])),
-                color: parseInt(circ_parts[1]).uint8, 
-                comment: circ_parts[2],
-              ))
-
-              next_circuit_id += 1
-
     of 49: # 1 in ascii
       let parts = input.to_string.split("|")
       if parts.len notin [4, 5]:
@@ -461,6 +422,11 @@ proc add_bytes*(arr: var seq[uint8], input: seq[int]) =
   for i in input:
     arr.add_bytes(i)
 
+proc add_bytes*(arr: var seq[uint8], input: seq[uint64]) =
+  arr.add_bytes(input.len)
+  for i in input:
+    arr.add_bytes(i)
+
 proc add_bytes*(arr: var seq[uint8], input: string) =
   arr.add_bytes(input.len)
   for c in input:
@@ -502,7 +468,7 @@ proc state_to_binary*(save_version: int, components: seq[parse_component], circu
       dependencies.add(component.custom_id)
 
     if component.kind in [CircuitCluster, VirtualCustom]: continue
-    if component.kind in virtual_kinds: continue
+    if component.kind in VIRTUAL_KINDS: continue
     components_to_save.add(id)
 
   result.add_bytes(0.uint8) # Format version
