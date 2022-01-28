@@ -306,16 +306,16 @@ proc get_circuit*(input: seq[uint8], i: var int): parse_circuit =
   result.path.add(get_point(input, i))
 
   var segment = get_u8(input, i)
-  while segment != 0:
+  var length_left = (segment and 0b0001_1111).int
+  while length_left != 0:
     let difference = DIRECTIONS[segment shr 5]
-    let length = (segment and 0b0001_1111).int
 
-    var j = 0
-    while j < length:
+    while length_left > 0:
       result.path.add(result.path[^1] + difference)
-      j += 1
+      length_left -= 1
 
     segment = get_u8(input, i)
+    length_left = (segment and 0b0001_1111).int
 
 proc get_circuits*(input: seq[uint8], i: var int): seq[parse_circuit] =
   let len = get_int(input, i)
