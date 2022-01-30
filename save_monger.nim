@@ -1,8 +1,9 @@
 import strutils, std/hashes
-import godot
+
 #{.warning[HoleEnumConv]: off.}
 
 const FORMAT_VERSION* = 1.uint8
+const TELEPORT_WIRE   = 0b0010_0000'u8
 
 type component_kind* = enum
   Error                   = 0
@@ -306,6 +307,11 @@ proc get_circuit*(input: seq[uint8], i: var int): parse_circuit =
   result.path.add(get_point(input, i))
 
   var segment = get_u8(input, i)
+
+  if segment == TELEPORT_WIRE:
+    result.path.add(get_point(input, i))
+    return
+
   var length_left = (segment and 0b0001_1111).int
   while length_left != 0:
     let difference = DIRECTIONS[segment shr 5]
@@ -554,7 +560,13 @@ proc add_path*(arr: var seq[uint8], path: seq[point]) =
   while offset < path.high:
     let original_direction = DIRECTIONS.find(path[offset + 1] - path[offset])
 
-    if original_direction == -1: break
+    if original_direction == -1: 
+      if path.len == 2:
+        # Special case for players who want to generate "teleport" wires
+        arr.add_bytes(TELEPORT_WIRE)
+        arr.add_bytes(path[1])
+        return
+      break
 
     # We have 5 bits to save the length, so max length is 31
     let max_length = min(path.high, 0b0001_1111)
