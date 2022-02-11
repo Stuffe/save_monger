@@ -135,7 +135,6 @@ type circuit_kind* = enum
   ck_byte
   ck_qword
 
-# The main reason not to use int8 for points is that it wraps around during pathfinding
 type point* = object
   x*: int16
   y*: int16
@@ -308,16 +307,17 @@ proc get_circuit*(input: seq[uint8], i: var int): parse_circuit =
 
   var segment = get_u8(input, i)
 
+  # This is a special case to support players who want to generate disconnected wires
   if segment == TELEPORT_WIRE:
     result.path.add(get_point(input, i))
     return
 
   var length_left = (segment and 0b0001_1111).int
   while length_left != 0:
-    let difference = DIRECTIONS[segment shr 5]
+    let direction = DIRECTIONS[segment shr 5]
 
     while length_left > 0:
-      result.path.add(result.path[^1] + difference)
+      result.path.add(result.path[^1] + direction)
       length_left -= 1
 
     segment = get_u8(input, i)
@@ -333,7 +333,7 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
   result.delay = 99999.uint32
   result.clock_speed = 100000.uint32
   result.menu_visible = true
-  
+
   if input.len == 0: return
 
   var version = input[0]
@@ -569,11 +569,11 @@ proc add_path*(arr: var seq[uint8], path: seq[point]) =
       break
 
     # We have 5 bits to save the length, so max length is 31
-    let max_length = min(path.high, 0b0001_1111)
+    let max_length = min(path.high - offset, 0b0001_1111)
     var length = 1
     var direction = original_direction
 
-    while offset + length < max_length:
+    while length < max_length:
       direction = DIRECTIONS.find(path[offset + length + 1] - path[offset + length])
       if direction != original_direction: break
       length += 1
