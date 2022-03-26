@@ -9,7 +9,7 @@ type component_kind* = enum
   Error                   = 0
   Off                     = 1
   On                      = 2
-  Buffer                  = 3
+  Buffer1                 = 3
   Not                     = 4
   And                     = 5
   And3                    = 6
@@ -47,8 +47,8 @@ type component_kind* = enum
   ByteAnd                 = 38
   ByteXor                 = 39
   ByteEqual               = 40
-  ByteLessU               = 41
-  ByteLessI               = 42
+  ByteLessUOld            = 41
+  ByteLessIOld            = 42
   ByteNeg                 = 43
   ByteAdd                 = 44
   ByteMul                 = 45
@@ -60,49 +60,49 @@ type component_kind* = enum
   BitMemory               = 51
   VirtualBitMemory        = 52
   SRLatch                 = 53
-  Random                  = 54
+  DELETED_0               = 54
   Clock                   = 55
   WaveformGenerator       = 56
   HttpClient              = 57
-  AsciiScreen             = 58
+  DELETED_1               = 58
   Keypad                  = 59
   FileRom                 = 60
   Halt                    = 61
-  CircuitCluster          = 62
+  WireCluster             = 62
   Screen                  = 63
   Program1                = 64
   Program1Red             = 65
-  Program2                = 66
-  Program3                = 67
+  DELETED_2               = 66
+  DELETED_3               = 67
   Program4                = 68
   LevelGate               = 69
   Input1                  = 70
-  Input2                  = 71
-  Input3                  = 72
-  Input4                  = 73
-  Input1BConditions       = 74
-  Input1B                 = 75
-  InputQword              = 76
-  Input1BCode             = 77
+  Input2Pin               = 71
+  Input3Pin               = 72
+  Input4Pin               = 73
+  InputConditions         = 74
+  Input8                  = 75
+  Input64                 = 76
+  InputCode               = 77
   Input1_1B               = 78
   Output1                 = 79
   Output1Sum              = 80
   Output1Car              = 81
   Output1Aval             = 82
   Output1Bval             = 83
-  Output2                 = 84
-  Output3                 = 85
-  Output4                 = 86
-  Output1B                = 87
-  OutputQword             = 88
+  Output2Pin              = 84
+  Output3Pin              = 85
+  Output4Pin              = 86
+  Output8                 = 87
+  Output64                = 88
   Output1_1B              = 89
   OutputCounter           = 90
   InputOutput             = 91
   Custom                  = 92
   VirtualCustom           = 93
   QwordProgram            = 94
-  DelayBuffer             = 95
-  VirtualDelayBuffer      = 96
+  DelayLine               = 95
+  VirtualDelayLine        = 96
   Console                 = 97
   ByteShl                 = 98
   ByteShr                 = 99
@@ -123,17 +123,51 @@ type component_kind* = enum
   QwordMux                = 113
   QwordSwitch             = 114
 
-  StateBit                = 115
-  StateByte               = 116
+  ProbeComponentBit       = 115
+  ProbeComponentWord      = 116
 
-const VIRTUAL_KINDS*  = [VirtualDelayBuffer, VirtualCustom, VirtualRegister, VirtualQwordRegister, VirtualBitMemory, VirtualByteCounter, VirtualQwordCounter, VirtualStack, VirtualRam, VirtualQwordRam, VirtualRegisterRedPlus, VirtualRegisterRed]
-const CUSTOM_INPUTS*  = [Input1, Input1B, InputQword]
-const CUSTOM_OUTPUTS* = [Output1, Output1B, OutputQword]
+  AndOrLatch              = 117
+  NandNandLatch           = 118
+  NorNorLatch             = 119
 
-type circuit_kind* = enum
-  ck_bit
-  ck_byte
-  ck_qword
+  ByteLessU               = 120
+  ByteLessI               = 121
+
+  DotMatrixDisplay        = 122
+  SegmentDisplay          = 123
+
+  Input16                 = 124
+  Input32                 = 125
+
+  Output16                = 126
+  Output32                = 127
+
+  Bidirectional1          = 128
+  Bidirectional8          = 129
+  Bidirectional16         = 130
+  Bidirectional32         = 131
+  Bidirectional64         = 132
+
+  Buffer8                 = 133
+  Buffer16                = 134
+  Buffer32                = 135
+  Buffer64                = 136
+
+  ProbeWireBit            = 137
+  ProbeWireWord           = 138
+
+
+const VIRTUAL_KINDS*  = [VirtualDelayLine, VirtualQwordRam, VirtualBitMemory, VirtualRam, VirtualRegisterRedPlus, VirtualRegister, VirtualStack, VirtualQwordRegister, VirtualByteCounter, VirtualRegisterRed, VirtualQwordCounter, VirtualCustom]
+const CUSTOM_INPUTS*  = [Input1, Input8, Input16, Input32, Input64]
+const CUSTOM_OUTPUTS* = [Output1, Output8, Output16, Output32, Output64]
+const LATCHES*        = [AndOrLatch, NandNandLatch, NorNorLatch]
+
+type wire_kind* = enum
+  wk_1
+  wk_8
+  wk_64 # Reorder me
+  wk_16
+  wk_32
 
 type point* = object
   x*: int16
@@ -154,21 +188,21 @@ type parse_component* = object
   kind*: component_kind
   position*: point
   rotation*: uint8
+  real_offset*: int8
   permanent_id*: int
   custom_string*: string
   custom_id*: int
   program_name*: string
 
-type parse_circuit* = object
-  permanent_id*: int
+type parse_wire* = object
   path*: seq[point]
-  kind*: circuit_kind
+  kind*: wire_kind
   color*: uint8
   comment*: string
 
 type parse_result* = object
   components*: seq[parse_component]
-  circuits*: seq[parse_circuit]
+  wires*: seq[parse_wire]
   save_version*: int
   nand*: uint32
   delay*: uint32
@@ -177,7 +211,7 @@ type parse_result* = object
   clock_speed*: uint32
   dependencies*: seq[int]
   description*: string
-  unpacked*: bool
+  centered*: bool # All future components should be centered
   camera_position*: point
 
 proc `+`*(a: point, b: point): point =
@@ -185,6 +219,9 @@ proc `+`*(a: point, b: point): point =
 
 proc `-`*(a: point, b: point): point =
   return point(x: a.x - b.x, y: a.y - b.y)
+
+proc `*`*(a: point, b: int16): point =
+  return point(x: a.x * b, y: a.y * b)
 
 proc to_string*(str: seq[uint8]): string =
   result = newStringOfCap(len(str))
@@ -278,7 +315,7 @@ proc get_component*(input: seq[uint8], i: var int): parse_component =
   result.rotation = get_u8(input, i)
   result.permanent_id = get_int(input, i)
   result.custom_string = get_string(input, i)
-  if result.kind in [Program1, Program2, Program3, Program4, QwordProgram]:
+  if result.kind in [Program1, DELETED_2, DELETED_3, Program4, QwordProgram]: # Backwards compatability Mar 2022
     result.program_name = get_string(input, i)
   elif result.kind == Custom:
     result.custom_id = get_int(input, i)
@@ -290,9 +327,9 @@ proc get_components*(input: seq[uint8], i: var int): seq[parse_component] =
     if comp.kind == Error: continue
     result.add(comp)
 
-proc get_circuit*(input: seq[uint8], i: var int): parse_circuit =
-  result.permanent_id = get_int(input, i)
-  result.kind = circuit_kind(get_u8(input, i))
+proc get_wire*(input: seq[uint8], i: var int): parse_wire =
+  discard get_int(input, i) # used to be permanent_id
+  result.kind = wire_kind(get_u8(input, i))
   result.color = get_u8(input, i)
   result.comment = get_string(input, i)
   
@@ -323,10 +360,10 @@ proc get_circuit*(input: seq[uint8], i: var int): parse_circuit =
     segment = get_u8(input, i)
     length_left = (segment and 0b0001_1111).int
 
-proc get_circuits*(input: seq[uint8], i: var int): seq[parse_circuit] =
+proc get_wires*(input: seq[uint8], i: var int): seq[parse_wire] =
   let len = get_int(input, i)
   for j in 0..len - 1:
-    result.add(get_circuit(input, i))
+    result.add(get_wire(input, i))
 
 proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
   result.nand = 99999.uint32
@@ -380,9 +417,9 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
               discard
 
         if parts[2] != "":
-          let circuit_strings = parts[2].split(";")
+          let wire_strings = parts[2].split(";")
           
-          for circ_string in circuit_strings:
+          for circ_string in wire_strings:
             let circ_parts = circ_string.split("`")
 
             if circ_parts.len != 5: 
@@ -398,9 +435,8 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
                 path.add(point(x: x, y: parseInt(n).int16))
               i += 1
 
-            result.circuits.add(parse_circuit(
-              permanent_id: parseInt(circ_parts[0]),
-              kind: circuit_kind(parseInt(circ_parts[1])),
+            result.wires.add(parse_wire(
+              kind: wire_kind(parseInt(circ_parts[1])),
               color: parseInt(circ_parts[2]).uint8, 
               comment: circ_parts[3],
               path: path, 
@@ -439,7 +475,7 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
           result.rotation = get_u8(input, i)
           result.permanent_id = get_u32(input, i).int
           result.custom_string = get_string(input, i)
-          if result.kind in [Program1, Program2, Program3, Program4, QwordProgram]:
+          if result.kind in [Program1, DELETED_2, DELETED_3, Program4, QwordProgram]: # Backwards compatability Mar 2022
             result.program_name = get_string(input, i)
           elif result.kind == Custom:
             result.custom_id = get_int(input, i)
@@ -448,23 +484,23 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
           let len = get_int(input, i)
           for j in 0..len - 1:
             let comp = get_component(input, i)
-            if comp.kind == Error: continue
+            if comp.kind in [Error, DELETED_0, DELETED_1, DELETED_2, DELETED_3]: continue
             result.add(comp)
 
-        proc get_circuit(input: seq[uint8], i: var int): parse_circuit =
-          result.permanent_id = get_u32(input, i).int
-          result.kind = circuit_kind(get_u8(input, i))
+        proc get_wire(input: seq[uint8], i: var int): parse_wire =
+          discard get_u32(input, i).int # Used to be permanent id
+          result.kind = wire_kind(get_u8(input, i))
           result.color = get_u8(input, i)
           result.comment = get_string(input, i)
           result.path = get_seq_point(input, i)
 
-        proc get_circuits(input: seq[uint8], i: var int): seq[parse_circuit] =
+        proc get_wires(input: seq[uint8], i: var int): seq[parse_wire] =
           let len = get_int(input, i)
           for j in 0..len - 1:
-            result.add(get_circuit(input, i))
+            result.add(get_wire(input, i))
 
         result.components = get_components(input, i)
-        result.circuits = get_circuits(input, i)
+        result.wires = get_wires(input, i)
 
     of 1:
       var i = 1 # 0th byte is version
@@ -477,20 +513,20 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
       result.nesting_level = get_u8(input, i)
       result.dependencies = get_seq_i64(input, i)
       result.description = get_string(input, i)
-      result.unpacked = get_bool(input, i)
+      result.centered = get_bool(input, i)
       result.camera_position = get_point(input, i)
       discard get_bool(input, i) # Has cached design, for future custom component lazy loading
 
       if not meta_only:
         result.components = get_components(input, i)
-        result.circuits = get_circuits(input, i)
+        result.wires = get_wires(input, i)
 
     else: discard
 
-proc add_bytes*(arr: var seq[uint8], input: bool) =
+proc add_bool*(arr: var seq[uint8], input: bool) =
   arr.add(input.uint8)
 
-proc add_bytes*(arr: var seq[uint8], input: int) =
+proc add_int*(arr: var seq[uint8], input: int) =
   arr.add(cast[uint8]((input shr 0)  and 0xff))
   arr.add(cast[uint8]((input shr 8)  and 0xff))
   arr.add(cast[uint8]((input shr 16) and 0xff))
@@ -500,50 +536,50 @@ proc add_bytes*(arr: var seq[uint8], input: int) =
   arr.add(cast[uint8]((input shr 48) and 0xff))
   arr.add(cast[uint8]((input shr 56) and 0xff))
 
-proc add_bytes*(arr: var seq[uint8], input: uint64) =
-  add_bytes(arr, cast[int](input))
+proc add_u64*(arr: var seq[uint8], input: uint64) =
+  add_int(arr, cast[int](input))
 
-proc add_bytes*(arr: var seq[uint8], input: uint32) =
+proc add_u32*(arr: var seq[uint8], input: uint32) =
   arr.add(cast[uint8]((input shr 0)  and 0xff))
   arr.add(cast[uint8]((input shr 8)  and 0xff))
   arr.add(cast[uint8]((input shr 16) and 0xff))
   arr.add(cast[uint8]((input shr 24) and 0xff))
 
-proc add_bytes*(arr: var seq[uint8], input: uint16) =
+proc add_u16*(arr: var seq[uint8], input: uint16) =
   arr.add(cast[uint8]((input shr 0)  and 0xff))
   arr.add(cast[uint8]((input shr 8)  and 0xff))
 
-proc add_bytes*(arr: var seq[uint8], input: int16) =
+proc add_i16*(arr: var seq[uint8], input: int16) =
   arr.add(cast[uint8]((input shr 0)  and 0xff))
   arr.add(cast[uint8]((input shr 8)  and 0xff))
 
-proc add_bytes*(arr: var seq[uint8], input: uint8) =
+proc add_u8*(arr: var seq[uint8], input: uint8) =
   arr.add(input)
 
-proc add_bytes*(arr: var seq[uint8], input: component_kind) =
-  arr.add_bytes(ord(input).uint16)
+proc add_component_kind*(arr: var seq[uint8], input: component_kind) =
+  arr.add_u16(ord(input).uint16)
 
-proc add_bytes*(arr: var seq[uint8], input: circuit_kind) =
+proc add_wire_kind*(arr: var seq[uint8], input: wire_kind) =
   arr.add(ord(input).uint8)
 
-proc add_bytes*(arr: var seq[uint8], input: point) =
-  arr.add_bytes(input.x)
-  arr.add_bytes(input.y)
+proc add_point*(arr: var seq[uint8], input: point) =
+  arr.add_i16(input.x)
+  arr.add_i16(input.y)
 
-proc add_bytes*(arr: var seq[uint8], input: seq[int]) =
-  arr.add_bytes(input.len)
+proc add_seq_int*(arr: var seq[uint8], input: seq[int]) =
+  arr.add_int(input.len)
   for i in input:
-    arr.add_bytes(i)
+    arr.add_int(i)
 
-proc add_bytes*(arr: var seq[uint8], input: seq[uint64]) =
-  arr.add_bytes(input.len)
+proc add_seq_u64*(arr: var seq[uint8], input: seq[uint64]) =
+  arr.add_int(input.len)
   for i in input:
-    arr.add_bytes(i)
+    arr.add_u64(i)
 
-proc add_bytes*(arr: var seq[uint8], input: string) =
-  arr.add_bytes(input.len)
+proc add_string*(arr: var seq[uint8], input: string) =
+  arr.add_int(input.len)
   for c in input:
-    arr.add_bytes(ord(c).uint8)
+    arr.add_u8(ord(c).uint8)
 
 proc add_path*(arr: var seq[uint8], path: seq[point]) =
   #[
@@ -553,7 +589,7 @@ proc add_path*(arr: var seq[uint8], path: seq[point]) =
     3. We end once a 0 length segment is encountered (0 byte)
   ]#
 
-  arr.add_bytes(path[0])
+  arr.add_point(path[0])
 
   var offset = 0
 
@@ -563,8 +599,8 @@ proc add_path*(arr: var seq[uint8], path: seq[point]) =
     if original_direction == -1: 
       if path.len == 2:
         # Special case for players who want to generate "teleport" wires
-        arr.add_bytes(TELEPORT_WIRE)
-        arr.add_bytes(path[1])
+        arr.add_u8(TELEPORT_WIRE)
+        arr.add_point(path[1])
         return
       break
 
@@ -579,65 +615,63 @@ proc add_path*(arr: var seq[uint8], path: seq[point]) =
       length += 1
 
     let segment = ((original_direction shl 5) or length).uint8
-    arr.add_bytes(segment)
+    arr.add_u8(segment)
 
     offset += length
 
   # Length 0 segment, ends the wire
-  arr.add_bytes(0.uint8)
+  arr.add_u8(0.uint8)
 
-proc add_bytes(arr: var seq[uint8], component: parse_component) =
-  arr.add_bytes(component.kind)
-  arr.add_bytes(component.position)
-  arr.add_bytes(component.rotation)
-  arr.add_bytes(component.permanent_id)
-  arr.add_bytes(component.custom_string)
+proc add_component(arr: var seq[uint8], component: parse_component) =
+  arr.add_component_kind(component.kind)
+  arr.add_point(component.position)
+  arr.add_u8(component.rotation)
+  arr.add_int(component.permanent_id)
+  arr.add_string(component.custom_string)
   case component.kind:
-    of Program1: arr.add_bytes(component.program_name)
-    of Program2: arr.add_bytes(component.program_name)
-    of Program3: arr.add_bytes(component.program_name)
-    of Program4: arr.add_bytes(component.program_name)
-    of QwordProgram: arr.add_bytes(component.program_name)
-    of Custom:   arr.add_bytes(component.custom_id)
+    of Program1: arr.add_string(component.program_name)
+    of Program4: arr.add_string(component.program_name)
+    of QwordProgram: arr.add_string(component.program_name)
+    of Custom:   arr.add_int(component.custom_id)
     else: discard
 
-proc add_bytes(arr: var seq[uint8], circuit: parse_circuit) =
-  arr.add_bytes(circuit.permanent_id)
-  arr.add_bytes(circuit.kind)
-  arr.add_bytes(circuit.color)
-  arr.add_bytes(circuit.comment)
-  arr.add_path(circuit.path)
+proc add_wire(arr: var seq[uint8], wire: parse_wire) =
+  arr.add_int(0) # Used to be permanent id
+  arr.add_wire_kind(wire.kind)
+  arr.add_u8(wire.color)
+  arr.add_string(wire.comment)
+  arr.add_path(wire.path)
 
-proc state_to_binary*(save_version: int, components: seq[parse_component], circuits: seq[parse_circuit], nand: uint32, delay: uint32, menu_visible: bool, clock_speed: uint32, nesting_level: uint8, description: string, unpacked: bool, camera_position: point): seq[uint8] =
+proc state_to_binary*(save_version: int, components: seq[parse_component], wires: seq[parse_wire], nand: uint32, delay: uint32, menu_visible: bool, clock_speed: uint32, nesting_level: uint8, description: string, camera_position: point): seq[uint8] =
   var dependencies: seq[int]
 
   var components_to_save: seq[int]
   for id, component in components:
     if component.kind == Custom and component.custom_id notin dependencies:
       dependencies.add(component.custom_id)
-
-    if component.kind in [CircuitCluster, VirtualCustom]: continue
+    if component.kind == WireCluster: continue
     if component.kind in VIRTUAL_KINDS: continue
+    if component.kind in [VirtualCustom, WireCluster]: continue
     components_to_save.add(id)
 
-  result.add_bytes(FORMAT_VERSION)
-  result.add_bytes(save_version)
-  result.add_bytes(nand)
-  result.add_bytes(delay)
-  result.add_bytes(menu_visible)
-  result.add_bytes(clock_speed)
-  result.add_bytes(nesting_level)
-  result.add_bytes(dependencies)
-  result.add_bytes(description)
-  result.add_bytes(unpacked)
-  result.add_bytes(camera_position)
-  result.add_bytes(false) # Has cached design, for custom component lazy loading
+  result.add_u8(FORMAT_VERSION)
+  result.add_int(save_version)
+  result.add_u32(nand.uint32)
+  result.add_u32(delay.uint32)
+  result.add_bool(menu_visible)
+  result.add_u32(clock_speed)
+  result.add_u8(nesting_level)
+  result.add_seq_int(dependencies)
+  result.add_string(description)
+  result.add_bool(true) # "centered"
+  result.add_point(camera_position)
+  result.add_bool(false) # Has cached design, for custom component lazy loading
 
-  result.add_bytes(components_to_save.len)
+  result.add_int(components_to_save.len)
   for id in components_to_save:
-    result.add_bytes(components[id])
+    result.add_component(components[id])
 
-  result.add_bytes(circuits.len)
-  for id, circuit in circuits:
-    result.add_bytes(circuit)
+  result.add_int(wires.len)
+  for id, wire in wires:
+    result.add_wire(wire)
 
