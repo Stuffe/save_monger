@@ -1,7 +1,5 @@
 import strutils, std/hashes
 
-#{.warning[HoleEnumConv]: off.}
-
 const FORMAT_VERSION* = 1.uint8
 const TELEPORT_WIRE   = 0b0010_0000'u8
 
@@ -19,62 +17,62 @@ type component_kind* = enum
   Nor                     = 10
   Xor                     = 11
   Xnor                    = 12
-  ByteCounter             = 13
-  VirtualByteCounter      = 14
-  QwordCounter            = 15
-  VirtualQwordCounter     = 16
+  Counter8                = 13
+  VirtualCounter8         = 14
+  Counter64               = 15
+  VirtualCounter64        = 16
   Ram                     = 17
   VirtualRam              = 18
-  QwordRam                = 19
-  VirtualQwordRam         = 20
+  DELETED_0               = 19
+  DELETED_1               = 20
   Stack                   = 21
   VirtualStack            = 22
-  Register                = 23
-  VirtualRegister         = 24
-  RegisterRed             = 25
-  VirtualRegisterRed      = 26
-  RegisterRedPlus         = 27
-  VirtualRegisterRedPlus  = 28
-  QwordRegister           = 29
-  VirtualQwordRegister    = 30
-  ByteSwitch              = 31
-  ByteMux                 = 32
+  Register8               = 23
+  VirtualRegister8        = 24
+  Register8Red            = 25
+  VirtualRegister8Red     = 26
+  Register8RedPlus        = 27
+  VirtualRegister8RedPlus = 28
+  Register64              = 29
+  VirtualRegister64       = 30
+  Switch8                 = 31
+  Mux8                    = 32
   Decoder1                = 33
   Decoder3                = 34
-  ByteConstant            = 35
-  ByteNot                 = 36
-  ByteOr                  = 37
-  ByteAnd                 = 38
-  ByteXor                 = 39
-  ByteEqual               = 40
-  ByteLessUOld            = 41
-  ByteLessIOld            = 42
-  ByteNeg                 = 43
-  ByteAdd                 = 44
-  ByteMul                 = 45
-  ByteSplitter            = 46
-  ByteMaker               = 47
-  QwordSplitter           = 48
-  QwordMaker              = 49
+  Constant8               = 35
+  Not8                    = 36
+  Or8                     = 37
+  And8                    = 38
+  Xor8                    = 39
+  Equal8                  = 40
+  DELETED_2               = 41
+  DELETED_3               = 42
+  Neg8                    = 43
+  Add8                    = 44
+  Mul8                    = 45
+  Splitter8               = 46
+  Maker8                  = 47
+  Splitter64              = 48
+  Maker64                 = 49
   FullAdder               = 50
   BitMemory               = 51
   VirtualBitMemory        = 52
   SRLatch                 = 53
-  DELETED_0               = 54
+  Decoder2                = 54
   Clock                   = 55
   WaveformGenerator       = 56
-  HttpClient              = 57
-  DELETED_1               = 58
+  DELETED_4               = 57
+  DELETED_5               = 58
   Keypad                  = 59
   FileRom                 = 60
   Halt                    = 61
   WireCluster             = 62
   Screen                  = 63
-  Program1                = 64
-  Program1Red             = 65
-  DELETED_2               = 66
-  DELETED_3               = 67
-  Program4                = 68
+  Program8_1              = 64
+  Program8_1Red           = 65
+  DONT_REUSE_0            = 66 # Had extra data so will break saves if reused
+  DONT_REUSE_1            = 67
+  Program8_4              = 68
   LevelGate               = 69
   Input1                  = 70
   Input2Pin               = 71
@@ -100,38 +98,38 @@ type component_kind* = enum
   InputOutput             = 91
   Custom                  = 92
   VirtualCustom           = 93
-  QwordProgram            = 94
-  DelayLine               = 95
-  VirtualDelayLine        = 96
+  ProgramWord             = 94
+  DelayLine1              = 95
+  VirtualDelayLine1       = 96
   Console                 = 97
-  ByteShl                 = 98
-  ByteShr                 = 99
+  Shl8                    = 98
+  Shr8                    = 99
 
-  QwordConstant           = 100
-  QwordNot                = 101
-  QwordOr                 = 102
-  QwordAnd                = 103
-  QwordXor                = 104
-  QwordNeg                = 105
-  QwordAdd                = 106
-  QwordMul                = 107
-  QwordEqual              = 108
-  QwordLessU              = 109
-  QwordLessI              = 110
-  QwordShl                = 111
-  QwordShr                = 112
-  QwordMux                = 113
-  QwordSwitch             = 114
+  Constant64              = 100
+  Not64                   = 101
+  Or64                    = 102
+  And64                   = 103
+  Xor64                   = 104
+  Neg64                   = 105
+  Add64                   = 106
+  Mul64                   = 107
+  Equal64                 = 108
+  LessU64                 = 109
+  LessI64                 = 110
+  Shl64                   = 111
+  Shr64                   = 112
+  Mux64                   = 113
+  Switch64                = 114
 
-  ProbeComponentBit       = 115
-  ProbeComponentWord      = 116
+  ProbeMemoryBit          = 115
+  ProbeMemoryWord         = 116
 
   AndOrLatch              = 117
   NandNandLatch           = 118
   NorNorLatch             = 119
 
-  ByteLessU               = 120
-  ByteLessI               = 121
+  LessU8                  = 120
+  LessI8                  = 121
 
   DotMatrixDisplay        = 122
   SegmentDisplay          = 123
@@ -156,8 +154,101 @@ type component_kind* = enum
   ProbeWireBit            = 137
   ProbeWireWord           = 138
 
+  Switch1                 = 139
 
-const VIRTUAL_KINDS*  = [VirtualDelayLine, VirtualQwordRam, VirtualBitMemory, VirtualRam, VirtualRegisterRedPlus, VirtualRegister, VirtualStack, VirtualQwordRegister, VirtualByteCounter, VirtualRegisterRed, VirtualQwordCounter, VirtualCustom]
+  Output1z                = 140
+  Output8z                = 141
+  Output16z               = 142
+  Output32z               = 143
+  Output64z               = 144
+
+  Constant16              = 145
+  Not16                   = 146
+  Or16                    = 147
+  And16                   = 148
+  Xor16                   = 149
+  Neg16                   = 150
+  Add16                   = 151
+  Mul16                   = 152
+  Equal16                 = 153
+  LessU16                 = 154
+  LessI16                 = 155
+  Shl16                   = 156
+  Shr16                   = 157
+  Mux16                   = 158
+  Switch16                = 159
+  Splitter16              = 160
+  Maker16                 = 161
+  Register16              = 162
+  VirtualRegister16       = 163
+  Counter16               = 164
+  VirtualCounter16        = 165
+
+  Constant32              = 166
+  Not32                   = 167
+  Or32                    = 168
+  And32                   = 169
+  Xor32                   = 170
+  Neg32                   = 171
+  Add32                   = 172
+  Mul32                   = 173
+  Equal32                 = 174
+  LessU32                 = 175
+  LessI32                 = 176
+  Shl32                   = 177
+  Shr32                   = 178
+  Mux32                   = 179
+  Switch32                = 180
+  Splitter32              = 181
+  Maker32                 = 182
+  Register32              = 183
+  VirtualRegister32       = 184
+  Counter32               = 185
+  VirtualCounter32        = 186
+
+  Output8zLevel           = 187
+
+  Nand8                   = 188
+  Nor8                    = 189
+  Xnor8                   = 190
+  Nand16                  = 191
+  Nor16                   = 192
+  Xnor16                  = 193
+  Nand32                  = 194
+  Nor32                   = 195
+  Xnor32                  = 196
+  Nand64                  = 197
+  Nor64                   = 198
+  Xnor64                  = 199
+
+  CheapRam                = 200
+  VirtualCheapRam         = 201
+  CheapRamLat             = 202
+  VirtualCheapRamLat      = 203
+
+  FastRam                 = 204
+  VirtualFastRam          = 205
+  Rom                     = 206
+  VirtualRom              = 207
+  SolutionRom             = 208
+  VirtualSolutionRom      = 209
+
+  DelayLine8              = 210
+  VirtualDelayLine8       = 211
+  DelayLine16             = 212
+  VirtualDelayLine16      = 213
+  DelayLine32             = 214
+  VirtualDelayLine32      = 215
+  DelayLine64             = 216
+  VirtualDelayLine64      = 217
+
+  DualLoadRam             = 218
+  VirtualDualLoadRam      = 219
+
+  Hdd                     = 220
+  VirtualHdd              = 221
+
+const VIRTUAL_KINDS*  = [VirtualDelayLine1, VirtualDelayLine8, VirtualDelayLine16, VirtualDelayLine32, VirtualDelayLine64, VirtualBitMemory, VirtualRam, VirtualRegister8, VirtualCounter32, VirtualCounter16, VirtualRegister16, VirtualCustom, VirtualFastRam, VirtualCounter64, VirtualRegister32, VirtualCheapRam, VirtualRegister8RedPlus, VirtualStack, VirtualRegister64, VirtualCounter8, VirtualRegister8Red, VirtualCheapRamLat, VirtualRom, VirtualSolutionRom, VirtualHdd, VirtualDualLoadRam]
 const CUSTOM_INPUTS*  = [Input1, Input8, Input16, Input32, Input64]
 const CUSTOM_OUTPUTS* = [Output1, Output8, Output16, Output32, Output64]
 const LATCHES*        = [AndOrLatch, NandNandLatch, NorNorLatch]
@@ -165,9 +256,9 @@ const LATCHES*        = [AndOrLatch, NandNandLatch, NorNorLatch]
 type wire_kind* = enum
   wk_1
   wk_8
-  wk_64 # Reorder me
   wk_16
   wk_32
+  wk_64
 
 type point* = object
   x*: int16
@@ -204,7 +295,7 @@ type parse_result* = object
   components*: seq[parse_component]
   wires*: seq[parse_wire]
   save_version*: int
-  nand*: uint32
+  gate*: uint32
   delay*: uint32
   menu_visible*: bool
   nesting_level*: uint8
@@ -227,11 +318,6 @@ proc to_string*(str: seq[uint8]): string =
   result = newStringOfCap(len(str))
   for ch in str:
     add(result, chr(ch))
-
-proc to_bytes*(input: string): seq[uint8] = 
-  result = newSeq[uint8](input.len)
-  for i in 0..input.high:
-    result[i] = uint8(input[i])
 
 proc file_get_bytes*(file_name: string): seq[uint8] =
   var file = open(file_name)
@@ -307,23 +393,25 @@ proc get_point*(input: seq[uint8], i: var int): point =
     y: get_i16(input, i)
   )
 
-proc get_component*(input: seq[uint8], i: var int): parse_component =
+proc get_component*(input: seq[uint8], i: var int, solution = false): parse_component =
   try: # Only fails for obsolete components (deleted enum values)
     result = parse_component(kind: component_kind(get_u16(input, i).int))
   except: discard
+  if solution and result.kind == Rom:
+    result.kind = SolutionRom
   result.position = get_point(input, i)
   result.rotation = get_u8(input, i)
   result.permanent_id = get_int(input, i)
   result.custom_string = get_string(input, i)
-  if result.kind in [Program1, DELETED_2, DELETED_3, Program4, QwordProgram]: # Backwards compatability Mar 2022
+  if result.kind in [Program8_1, DONT_REUSE_0, DONT_REUSE_1, Program8_4, ProgramWord]: # Backwards compatability Mar 2022
     result.program_name = get_string(input, i)
   elif result.kind == Custom:
     result.custom_id = get_int(input, i)
 
-proc get_components*(input: seq[uint8], i: var int): seq[parse_component] =
+proc get_components*(input: seq[uint8], i: var int, solution = false): seq[parse_component] =
   let len = get_int(input, i)
   for j in 0..len - 1:
-    let comp = get_component(input, i)
+    let comp = get_component(input, i, solution)
     if comp.kind == Error: continue
     result.add(comp)
 
@@ -365,8 +453,8 @@ proc get_wires*(input: seq[uint8], i: var int): seq[parse_wire] =
   for j in 0..len - 1:
     result.add(get_wire(input, i))
 
-proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
-  result.nand = 99999.uint32
+proc parse_state*(input: seq[uint8], meta_only = false, solution = false): parse_result =
+  result.gate = 99999.uint32
   result.delay = 99999.uint32
   result.clock_speed = 100000.uint32
   result.menu_visible = true
@@ -384,7 +472,7 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
       if parts[3] != "":
         try:
           var scores = parts[3].split(",")
-          result.nand = parseInt(scores[0]).uint32
+          result.gate = parseInt(scores[0]).uint32
           result.delay = parseInt(scores[1]).uint32
         except: discard
 
@@ -446,7 +534,7 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
       var i = 1 # 0th byte is version
 
       result.save_version = get_int(input, i)
-      result.nand = get_u32(input, i)
+      result.gate = get_u32(input, i)
       result.delay = get_u32(input, i)
       result.menu_visible = get_bool(input, i)
       result.clock_speed = get_u32(input, i)
@@ -475,7 +563,7 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
           result.rotation = get_u8(input, i)
           result.permanent_id = get_u32(input, i).int
           result.custom_string = get_string(input, i)
-          if result.kind in [Program1, DELETED_2, DELETED_3, Program4, QwordProgram]: # Backwards compatability Mar 2022
+          if result.kind in [Program8_1, DONT_REUSE_0, DONT_REUSE_1, Program8_4, ProgramWord]: # Backwards compatability Mar 2022
             result.program_name = get_string(input, i)
           elif result.kind == Custom:
             result.custom_id = get_int(input, i)
@@ -484,7 +572,7 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
           let len = get_int(input, i)
           for j in 0..len - 1:
             let comp = get_component(input, i)
-            if comp.kind in [Error, DELETED_0, DELETED_1, DELETED_2, DELETED_3]: continue
+            if comp.kind in [Error, DONT_REUSE_0, DONT_REUSE_1, DELETED_0, DELETED_1, DELETED_2, DELETED_3, DELETED_4, DELETED_5]: continue
             result.add(comp)
 
         proc get_wire(input: seq[uint8], i: var int): parse_wire =
@@ -506,7 +594,7 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
       var i = 1 # 0th byte is version
 
       result.save_version = get_int(input, i)
-      result.nand = get_u32(input, i)
+      result.gate = get_u32(input, i)
       result.delay = get_u32(input, i)
       result.menu_visible = get_bool(input, i)
       result.clock_speed = get_u32(input, i)
@@ -518,7 +606,7 @@ proc parse_state*(input: seq[uint8], meta_only = false): parse_result =
       discard get_bool(input, i) # Has cached design, for future custom component lazy loading
 
       if not meta_only:
-        result.components = get_components(input, i)
+        result.components = get_components(input, i, solution)
         result.wires = get_wires(input, i)
 
     else: discard
@@ -629,9 +717,9 @@ proc add_component(arr: var seq[uint8], component: parse_component) =
   arr.add_int(component.permanent_id)
   arr.add_string(component.custom_string)
   case component.kind:
-    of Program1: arr.add_string(component.program_name)
-    of Program4: arr.add_string(component.program_name)
-    of QwordProgram: arr.add_string(component.program_name)
+    of Program8_1: arr.add_string(component.program_name)
+    of Program8_4: arr.add_string(component.program_name)
+    of ProgramWord: arr.add_string(component.program_name)
     of Custom:   arr.add_int(component.custom_id)
     else: discard
 
@@ -642,7 +730,7 @@ proc add_wire(arr: var seq[uint8], wire: parse_wire) =
   arr.add_string(wire.comment)
   arr.add_path(wire.path)
 
-proc state_to_binary*(save_version: int, components: seq[parse_component], wires: seq[parse_wire], nand: uint32, delay: uint32, menu_visible: bool, clock_speed: uint32, nesting_level: uint8, description: string, camera_position: point): seq[uint8] =
+proc state_to_binary*(save_version: int, components: seq[parse_component], wires: seq[parse_wire], gate: uint32, delay: uint32, menu_visible: bool, clock_speed: uint32, nesting_level: uint8, description: string, camera_position: point): seq[uint8] =
   var dependencies: seq[int]
 
   var components_to_save: seq[int]
@@ -656,7 +744,7 @@ proc state_to_binary*(save_version: int, components: seq[parse_component], wires
 
   result.add_u8(FORMAT_VERSION)
   result.add_int(save_version)
-  result.add_u32(nand.uint32)
+  result.add_u32(gate.uint32)
   result.add_u32(delay.uint32)
   result.add_bool(menu_visible)
   result.add_u32(clock_speed)
@@ -674,4 +762,3 @@ proc state_to_binary*(save_version: int, components: seq[parse_component], wires
   result.add_int(wires.len)
   for id, wire in wires:
     result.add_wire(wire)
-
