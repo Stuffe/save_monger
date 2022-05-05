@@ -1,7 +1,7 @@
 import libraries/supersnappy/supersnappy
-import common, versions/v49, versions/v0, versions/v1, versions/v2
+import common, versions/v49, versions/v0, versions/v1, versions/v2, versions/v3
 export common
-const FORMAT_VERSION = 2.uint8
+const FORMAT_VERSION = 3'u8
 
 proc file_get_bytes*(file_name: string): seq[uint8] =
   var file = open(file_name)
@@ -32,6 +32,7 @@ proc parse_state*(input: seq[uint8], meta_only = false, solution = false): parse
     of 0:  v0.parse(input, meta_only, solution, result)
     of 1:  v1.parse(input, meta_only, solution, result)
     of 2:  v2.parse(input, meta_only, solution, result)
+    of 3:  v3.parse(input, meta_only, solution, result)
     else:  assert false
 
 proc add_component(arr: var seq[uint8], component: parse_component) =

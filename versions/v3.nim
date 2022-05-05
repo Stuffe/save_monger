@@ -86,6 +86,7 @@ proc parse*(compressed: seq[uint8], meta_only: bool, solution: bool, parse_resul
   var bytes = uncompress(compressed[1..^1])
   var i = 0
 
+  parse_result.save_version = get_int(bytes, i)
   parse_result.gate = get_int(bytes, i)
   parse_result.delay = get_int(bytes, i)
   parse_result.menu_visible = get_bool(bytes, i)
