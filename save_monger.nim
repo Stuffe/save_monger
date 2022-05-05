@@ -78,6 +78,7 @@ proc state_to_binary*(save_version: int,
     if component.kind in [VirtualCustom, WireCluster]: continue
     components_to_save.add(id)
 
+  result.add_int(save_version)
   result.add_int(gate)
   result.add_int(delay)
   result.add_bool(menu_visible)
