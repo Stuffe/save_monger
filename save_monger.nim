@@ -1,6 +1,7 @@
 import libraries/supersnappy/supersnappy
 import common, versions/v49, versions/v0, versions/v1, versions/v2, versions/v3
 export common
+
 const FORMAT_VERSION = 3'u8
 
 proc file_get_bytes*(file_name: string): seq[uint8] =
@@ -70,13 +71,13 @@ proc state_to_binary*(save_version: int,
                       player_data = newSeq[uint8]()): seq[uint8] =
 
   var dependencies: seq[int]
-
   var components_to_save: seq[int]
+
   for id, component in components:
     if component.kind == Custom and component.custom_id notin dependencies:
       dependencies.add(component.custom_id)
     if component.kind in VIRTUAL_KINDS: continue
-    if component.kind in [VirtualCustom, WireCluster]: continue
+    if component.kind == WireCluster: continue
     components_to_save.add(id)
 
   result.add_int(save_version)
