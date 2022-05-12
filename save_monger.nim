@@ -34,7 +34,7 @@ proc parse_state*(input: seq[uint8], meta_only = false, solution = false): parse
     of 1:  v1.parse(input, meta_only, solution, result)
     of 2:  v2.parse(input, meta_only, solution, result)
     of 3:  v3.parse(input, meta_only, solution, result)
-    else:  assert false
+    else: discard
 
 proc add_component(arr: var seq[uint8], component: parse_component) =
   arr.add_component_kind(component.kind)
