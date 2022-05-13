@@ -21,8 +21,8 @@ type component_kind* = enum
   VirtualCounter8         = 14
   Counter64               = 15
   VirtualCounter64        = 16
-  Ram                     = 17
-  VirtualRam              = 18
+  Ram8                    = 17
+  VirtualRam8              = 18
   DELETED_0               = 19
   DELETED_1               = 20
   Stack                   = 21
@@ -221,13 +221,13 @@ type component_kind* = enum
   Nor64                   = 198
   Xnor64                  = 199
 
-  CheapRam                = 200
-  VirtualCheapRam         = 201
-  CheapRamLat             = 202
-  VirtualCheapRamLat      = 203
+  Ram                     = 200
+  VirtualRam              = 201
+  RamLatency              = 202
+  VirtualRamLatency       = 203
 
-  FastRam                 = 204
-  VirtualFastRam          = 205
+  RamFast                 = 204
+  VirtualRamFast          = 205
   Rom                     = 206
   VirtualRom              = 207
   SolutionRom             = 208
@@ -242,15 +242,15 @@ type component_kind* = enum
   DelayLine64             = 216
   VirtualDelayLine64      = 217
 
-  DualLoadRam             = 218
-  VirtualDualLoadRam      = 219
+  RamDualLoad             = 218
+  VirtualRamDualLoad      = 219
 
   Hdd                     = 220
   VirtualHdd              = 221
 
   Network                 = 222
 
-const VIRTUAL_KINDS*  = [VirtualDelayLine1, VirtualDelayLine8, VirtualDelayLine16, VirtualDelayLine32, VirtualDelayLine64, VirtualBitMemory, VirtualRam, VirtualRegister8, VirtualCounter32, VirtualCounter16, VirtualRegister16, VirtualCustom, VirtualFastRam, VirtualCounter64, VirtualRegister32, VirtualCheapRam, VirtualRegister8RedPlus, VirtualStack, VirtualRegister64, VirtualCounter8, VirtualRegister8Red, VirtualCheapRamLat, VirtualRom, VirtualSolutionRom, VirtualHdd, VirtualDualLoadRam]
+const VIRTUAL_KINDS*  = [VirtualDelayLine1, VirtualDelayLine8, VirtualDelayLine16, VirtualDelayLine32, VirtualDelayLine64, VirtualBitMemory, VirtualRam8, VirtualRegister8, VirtualCounter32, VirtualCounter16, VirtualRegister16, VirtualCustom, VirtualRamFast, VirtualCounter64, VirtualRegister32, VirtualRam, VirtualRegister8RedPlus, VirtualStack, VirtualRegister64, VirtualCounter8, VirtualRegister8Red, VirtualRamLatency, VirtualRom, VirtualSolutionRom, VirtualHdd, VirtualRamDualLoad]
 const CUSTOM_INPUTS*  = [Input1, Input8, Input16, Input32, Input64]
 const CUSTOM_OUTPUTS* = [Output1, Output8, Output16, Output32, Output64]
 const LATCHES*        = [AndOrLatch, NandNandLatch, NorNorLatch]
