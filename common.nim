@@ -250,6 +250,15 @@ type component_kind* = enum
 
   Network                 = 222
 
+  Rol8                    = 223
+  Rol16                   = 224
+  Rol32                   = 225
+  Rol64                   = 226
+  Ror8                    = 227
+  Ror16                   = 228
+  Ror32                   = 229
+  Ror64                   = 230
+
 const VIRTUAL_KINDS*  = [VirtualDelayLine1, VirtualDelayLine8, VirtualDelayLine16, VirtualDelayLine32, VirtualDelayLine64, VirtualBitMemory, VirtualRam8, VirtualRegister8, VirtualCounter32, VirtualCounter16, VirtualRegister16, VirtualCustom, VirtualRamFast, VirtualCounter64, VirtualRegister32, VirtualRam, VirtualRegister8RedPlus, VirtualStack, VirtualRegister64, VirtualCounter8, VirtualRegister8Red, VirtualRamLatency, VirtualRom, VirtualSolutionRom, VirtualHdd, VirtualRamDualLoad]
 const CUSTOM_INPUTS*  = [Input1, Input8, Input16, Input32, Input64]
 const CUSTOM_OUTPUTS* = [Output1, Output8, Output16, Output32, Output64]
