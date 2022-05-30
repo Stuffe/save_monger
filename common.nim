@@ -311,7 +311,7 @@ type parse_wire* = object
 type parse_result* = object
   components*: seq[parse_component]
   wires*: seq[parse_wire]
-  save_version*: int
+  save_version*: int # Custom component id, is pre sandbox architecture, also for checking if the level has been updated
   gate*: int
   delay*: int
   menu_visible*: bool
