@@ -262,6 +262,11 @@ type component_kind* = enum
   IndexerBit              = 231
   IndexerByte             = 232
 
+  DivMod8                 = 233
+  DivMod16                = 234
+  DivMod32                = 235
+  DivMod64                = 236
+
 const VIRTUAL_KINDS*  = [VirtualDelayLine1, VirtualDelayLine8, VirtualDelayLine16, VirtualDelayLine32, VirtualDelayLine64, VirtualBitMemory, VirtualRam8, VirtualRegister8, VirtualCounter32, VirtualCounter16, VirtualRegister16, VirtualCustom, VirtualRamFast, VirtualCounter64, VirtualRegister32, VirtualRam, VirtualRegister8RedPlus, VirtualStack, VirtualRegister64, VirtualCounter8, VirtualRegister8Red, VirtualRamLatency, VirtualRom, VirtualSolutionRom, VirtualHdd, VirtualRamDualLoad]
 const CUSTOM_INPUTS*  = [Input1, Input8, Input16, Input32, Input64]
 const CUSTOM_OUTPUTS* = [Output1, Output8, Output16, Output32, Output64]
