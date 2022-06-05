@@ -6,12 +6,12 @@ const FORMAT_VERSION = 3'u8
 
 proc file_get_bytes*(file_name: string): seq[uint8] =
   var file = open(file_name)
+  defer: file.close() # Notice there are 2 exits
 
   let len = getFileSize(file)
   var buffer = newSeq[uint8](len)
   if len == 0: return buffer
   discard file.readBytes(buffer, 0, len)
-  file.close()
   return buffer
 
 proc parse_state*(input: seq[uint8], meta_only = false, solution = false): parse_result =
