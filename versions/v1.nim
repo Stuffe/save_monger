@@ -38,7 +38,7 @@ func get_component(input: seq[uint8], i: var int, solution = false): parse_compo
   result.rotation = get_u8(input, i)
   result.permanent_id = get_int(input, i)
   result.custom_string = get_string(input, i)
-  if result.kind in [Program8_1, DELETED_6, DELETED_7, Program8_4, ProgramWord]:
+  if result.kind in [Program8_1, DELETED_6, DELETED_7, Program8_4, Program]:
     discard get_string(input, i)
   elif result.kind == Custom:
     result.custom_id = get_int(input, i)

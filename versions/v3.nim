@@ -30,7 +30,7 @@ func get_component(input: seq[uint8], i: var int, solution = false): parse_compo
     result.custom_id = get_int(input, i)
     result.nudge_on_add = get_point(input, i)
 
-  elif result.kind in [Program8_1, Program8_4, ProgramWord]:
+  elif result.kind in [Program8_1, Program8_4, Program]:
     let len = get_u16(input, i)
     var j = 0'u16
     while j < len:

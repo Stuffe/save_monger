@@ -48,7 +48,7 @@ proc add_component(arr: var seq[uint8], component: parse_component) =
   if component.kind == Custom:
     arr.add_int(component.custom_id)
     arr.add_point(component.nudge_on_add)
-  elif component.kind in [Program8_1, Program8_4, ProgramWord]:
+  elif component.kind in [Program8_1, Program8_4, Program]:
     arr.add_u16(component.selected_programs.len.uint16)
     for level, program in component.selected_programs:
       arr.add_int(level)

@@ -29,7 +29,7 @@ func get_component(bytes: seq[uint8], i: var int): parse_component =
   result.rotation = get_u8(bytes, i)
   result.permanent_id = get_u32(bytes, i).int
   result.custom_string = get_string(bytes, i)
-  if result.kind in [Program8_1, DELETED_6, DELETED_7, Program8_4, ProgramWord]:
+  if result.kind in [Program8_1, DELETED_6, DELETED_7, Program8_4, Program]:
     discard get_string(bytes, i)
   elif result.kind == Custom:
     result.custom_id = get_int(bytes, i)

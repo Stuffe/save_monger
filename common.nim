@@ -98,7 +98,7 @@ type component_kind* = enum
   InputOutput             = 91
   Custom                  = 92
   VirtualCustom           = 93
-  ProgramWord             = 94
+  Program             = 94
   DelayLine1              = 95
   VirtualDelayLine1       = 96
   Console                 = 97
@@ -268,6 +268,7 @@ type component_kind* = enum
   DivMod64                = 236
 
   SpriteDisplay           = 237
+  ConfigDelay             = 238
 
 const VIRTUAL_KINDS*  = [VirtualDelayLine1, VirtualDelayLine8, VirtualDelayLine16, VirtualDelayLine32, VirtualDelayLine64, VirtualBitMemory, VirtualRam8, VirtualRegister8, VirtualCounter32, VirtualCounter16, VirtualRegister16, VirtualCustom, VirtualRamFast, VirtualCounter64, VirtualRegister32, VirtualRam, VirtualRegister8RedPlus, VirtualStack, VirtualRegister64, VirtualCounter8, VirtualRegister8Red, VirtualRamLatency, VirtualRom, VirtualSolutionRom, VirtualHdd, VirtualRamDualLoad]
 const CUSTOM_INPUTS*  = [Input1, Input8, Input16, Input32, Input64]
