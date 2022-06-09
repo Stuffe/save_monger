@@ -77,7 +77,7 @@ proc state_to_binary*(save_version: int,
   for id, component in components:
     if component.kind == Custom and component.custom_id notin dependencies:
       dependencies.add(component.custom_id)
-    if component.kind in VIRTUAL_KINDS: continue
+    if component.kind in LATE_KINDS: continue
     if component.kind == WireCluster: continue
     components_to_save.add(id)
 
