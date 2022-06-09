@@ -272,7 +272,7 @@ type component_kind* = enum
 
   Clock                   = 239
 
-const EARLY_KINDS*    = [Output1, DelayLine1, DelayLine16, BitMemory, Ram8, Hdd, Register8, Counter32, Counter16, Register16, DelayLine8, Custom, SolutionRom, RamFast, Counter64, Rom, Register32, Ram, Register8RedPlus, DelayLine64, Stack, Register64, DelayLine32, Counter8, Register8Red, RamLatency, RamDualLoad]
+const EARLY_KINDS*    = [Input1, Input2Pin, Input3Pin, Input4Pin, InputConditions, Input8, Input64, InputCode, Output1, Output1Sum, Output1Car, Output1Aval, Output1Bval, Output2Pin, Output3Pin, Output4Pin, Output8, Output64, LevelOutput, OutputCounter, InputOutput, Input16, Input32, Output16, Output32, Output8zLevel, DelayLine1, DelayLine16, BitMemory, Ram8, Hdd, Register8, Counter32, Counter16, Register16, DelayLine8, Custom, SolutionRom, RamFast, Counter64, Rom, Register32, Ram, Register8RedPlus, DelayLine64, Stack, Register64, DelayLine32, Counter8, Register8Red, RamLatency, RamDualLoad]
 const LATE_KINDS*     = [VirtualDelayLine1, VirtualDelayLine8, VirtualDelayLine16, VirtualDelayLine32, VirtualDelayLine64, VirtualBitMemory, VirtualRam8, VirtualRegister8, VirtualCounter32, VirtualCounter16, VirtualRegister16, VirtualCustom, VirtualRamFast, VirtualCounter64, VirtualRegister32, VirtualRam, VirtualRegister8RedPlus, VirtualStack, VirtualRegister64, VirtualCounter8, VirtualRegister8Red, VirtualRamLatency, VirtualRom, VirtualSolutionRom, VirtualHdd, VirtualRamDualLoad]
 const CUSTOM_INPUTS*  = [Input1, Input8, Input16, Input32, Input64]
 const CUSTOM_OUTPUTS* = [Output1, Output8, Output16, Output32, Output64]
