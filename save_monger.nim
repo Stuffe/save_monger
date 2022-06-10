@@ -2,7 +2,7 @@ import libraries/supersnappy/supersnappy
 import common, versions/v49, versions/v0, versions/v1, versions/v2, versions/v3
 export common
 
-const FORMAT_VERSION = 3'u8
+const SAVE_VERSION* = 3'u8
 
 proc file_get_bytes*(file_name: string): seq[uint8] =
   var file = open(file_name)
@@ -27,9 +27,9 @@ proc parse_state*(input: seq[uint8], meta_only = false, solution = false): parse
 
   if input.len == 0: return
 
-  var version = input[0]
+  result.version = input[0]
 
-  case version:
+  case result.version:
     of 49: v49.parse(input, meta_only, solution, result) # This is an ancient ascii version, where 49 meant "1"
     of 0:  v0.parse(input, meta_only, solution, result)
     of 1:  v1.parse(input, meta_only, solution, result)
@@ -101,4 +101,4 @@ proc state_to_binary*(save_version: int,
   for id, wire in wires:
     result.add_wire(wire)
 
-  return FORMAT_VERSION & compress(result)
+  return SAVE_VERSION & compress(result)
