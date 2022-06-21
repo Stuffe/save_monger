@@ -42,7 +42,7 @@ func get_components(input: seq[uint8], i: var int, solution = false): seq[parse_
   let len = get_int(input, i)
   for j in 0..len - 1:
     let comp = get_component(input, i, solution)
-    if comp.kind == Error: continue
+    if comp.kind == Error or comp.kind in DELETED_KINDS: continue
     result.add(comp)
 
 func get_wire(input: seq[uint8], i: var int): parse_wire =

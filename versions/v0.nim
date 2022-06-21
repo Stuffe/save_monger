@@ -39,7 +39,7 @@ func get_components(bytes: seq[uint8], i: var int): seq[parse_component] =
   let len = get_int(bytes, i)
   for j in 0..len - 1:
     let comp = get_component(bytes, i)
-    if comp.kind in [Error, DELETED_0, DELETED_1, DELETED_2, DELETED_3, DELETED_4, DELETED_5, DELETED_6, DELETED_7]: continue
+    if comp.kind == Error or comp.kind in DELETED_KINDS: continue
     result.add(comp)
 
 func get_wire(bytes: seq[uint8], i: var int): parse_wire =
