@@ -335,7 +335,7 @@ type parse_result* = object
   version*: uint8
   components*: seq[parse_component]
   wires*: seq[parse_wire]
-  save_version*: int # Custom component id, is pre sandbox architecture, also for checking if the level has been updated
+  save_id*: int # Unique id for each architectures and custom components. For levels it serves as a check against outdated versions
   gate*: int
   delay*: int
   menu_visible*: bool
@@ -344,7 +344,8 @@ type parse_result* = object
   description*: string
   camera_position*: point
   player_data*: seq[uint8]
-  image_data*: seq[uint8]
+  hub_synced*: bool
+  campaign_bound*: bool
 
 proc `+`*(a: point, b: point): point =
   return point(x: a.x + b.x, y: a.y + b.y)

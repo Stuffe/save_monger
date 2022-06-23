@@ -19,7 +19,7 @@ proc parse*(bytes: seq[uint8], meta_only: bool, solution: bool, parse_result: va
     except: discard
 
   if parts.len == 5 and parts[4] != "":
-    parse_result.save_version = parseInt(parts[4])
+    parse_result.save_id = parseInt(parts[4])
 
   if not meta_only:
     if parts[1] != "":

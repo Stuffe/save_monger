@@ -69,6 +69,8 @@ proc state_to_binary*(save_version: int,
                       clock_speed: uint32, 
                       description: string, 
                       camera_position: point,
+                      hub_synced: bool,
+                      campaign_bound: bool,
                       player_data = newSeq[uint8]()): seq[uint8] =
 
   var dependencies: seq[int]
@@ -89,8 +91,9 @@ proc state_to_binary*(save_version: int,
   result.add_seq_int(dependencies)
   result.add_string(description)
   result.add_point(camera_position)
-  result.add_bool(false) # Eventually architecture score data
-  result.add_seq_uint8(newSeq[uint8]()) # Eventually image data
+  result.add_bool(hub_synced)
+  result.add_bool(campaign_bound)
+  result.add_bool(false) # Eventually used for architecture score
   result.add_seq_uint8(player_data)
 
   result.add_int(components_to_save.len)

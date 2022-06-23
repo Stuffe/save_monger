@@ -87,7 +87,7 @@ proc parse*(compressed: seq[uint8], meta_only: bool, solution: bool, parse_resul
   var bytes = uncompress(compressed[1..^1])
   var i = 0
 
-  parse_result.save_version = rand(int.high) # This version was live for 2 hours only, because this field was missing, which causes custom components to crash
+  parse_result.save_id = rand(int.high) # This version was live for 2 hours only, because this field was missing, which causes custom components to crash
   parse_result.gate = get_int(bytes, i)
   parse_result.delay = get_int(bytes, i)
   parse_result.menu_visible = get_bool(bytes, i)
@@ -96,7 +96,7 @@ proc parse*(compressed: seq[uint8], meta_only: bool, solution: bool, parse_resul
   parse_result.description = get_string(bytes, i)
   parse_result.camera_position = get_point(bytes, i)
   discard get_bool(bytes, i)
-  parse_result.image_data = get_seq_u8(bytes, i)
+  discard get_seq_u8(bytes, i)
   parse_result.player_data = get_seq_u8(bytes, i)
 
   if not meta_only:

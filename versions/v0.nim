@@ -57,7 +57,7 @@ func get_wires(bytes: seq[uint8], i: var int): seq[parse_wire] =
 proc parse*(bytes: seq[uint8], meta_only: bool, solution: bool, parse_result: var parse_result) =
   var i = 1 # 0th byte is version
 
-  parse_result.save_version = get_int(bytes, i)
+  parse_result.save_id = get_int(bytes, i)
   parse_result.gate = get_u32(bytes, i).int
   parse_result.delay = get_u32(bytes, i).int
   parse_result.menu_visible = get_bool(bytes, i)
