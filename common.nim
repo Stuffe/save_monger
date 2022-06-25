@@ -317,12 +317,12 @@ type wire_kind* = enum
 type parse_component* = object
   kind*: component_kind
   position*: point
+  custom_displacement*: point
   rotation*: uint8
   real_offset*: int8
   permanent_id*: int
   custom_string*: string
   custom_id*: int
-  nudge_on_add*: point
   setting_1*: uint64
   setting_2*: uint64
   selected_programs*: Table[int, string]

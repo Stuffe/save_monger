@@ -33,7 +33,7 @@ func get_component(bytes: seq[uint8], i: var int): parse_component =
     discard get_string(bytes, i)
   elif result.kind == Custom:
     result.custom_id = get_int(bytes, i)
-    result.nudge_on_add = point(x: int16.low, y: int16.low)
+    result.custom_displacement = point(x: int16.low, y: int16.low)
 
 func get_components(bytes: seq[uint8], i: var int): seq[parse_component] =
   let len = get_int(bytes, i)
