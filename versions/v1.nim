@@ -42,7 +42,6 @@ func get_component(input: seq[uint8], i: var int, solution = false): parse_compo
     discard get_string(input, i)
   elif result.kind == Custom:
     result.custom_id = get_int(input, i)
-    result.custom_displacement = point(x: int16.low, y: int16.low)
 
 func get_components(input: seq[uint8], i: var int, solution = false): seq[parse_component] =
   let len = get_int(input, i)

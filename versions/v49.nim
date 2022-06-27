@@ -43,7 +43,6 @@ proc parse*(bytes: seq[uint8], meta_only: bool, solution: bool, parse_result: va
               parse_result.components[^1].custom_id = parseInt(comp_parts[5])
             except:
               parse_result.components[^1].custom_id = rand(int.high.int)
-            parse_result.components[^1].custom_displacement = point(x: int16.low, y: int16.low)
         except:
           discard
 
