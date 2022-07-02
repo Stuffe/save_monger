@@ -1,3 +1,4 @@
+import os
 import libraries/supersnappy/supersnappy
 import common, versions/v49, versions/v0, versions/v1, versions/v2, versions/v3
 export common
@@ -5,7 +6,11 @@ export common
 const SAVE_VERSION* = 3'u8
 
 proc file_get_bytes*(file_name: string): seq[uint8] =
-  var file = open(file_name)
+  var file: File
+  
+  # Since the game loads files from 2 different threads, we can't assume the file isn't locked (on Windows)
+  while not file.open(file_name):
+    sleep(1)
   defer: file.close()
 
   let len = getFileSize(file)
