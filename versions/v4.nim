@@ -1,4 +1,3 @@
-import random
 import ../libraries/supersnappy/supersnappy
 import ../common
 
@@ -87,7 +86,8 @@ proc parse*(compressed: seq[uint8], meta_only: bool, solution: bool, parse_resul
   var bytes = uncompress(compressed[1..^1])
   var i = 0
 
-  parse_result.save_id = rand(int.high) # This version was live for 2 hours only, because this field was missing, which causes custom components to crash
+  parse_result.save_id = get_int(bytes, i)
+  parse_result.hub_id = get_u32(bytes, i)
   parse_result.gate = get_int(bytes, i)
   parse_result.delay = get_int(bytes, i)
   parse_result.menu_visible = get_bool(bytes, i)
@@ -95,8 +95,9 @@ proc parse*(compressed: seq[uint8], meta_only: bool, solution: bool, parse_resul
   parse_result.dependencies = get_seq_int(bytes, i)
   parse_result.description = get_string(bytes, i)
   parse_result.camera_position = get_point(bytes, i)
-  discard get_bool(bytes, i)
-  discard get_seq_u8(bytes, i)
+  parse_result.synced = get_sync_state(bytes, i)
+  parse_result.campaign_bound = get_bool(bytes, i)
+  discard get_u16(bytes, i) # Eventually used for architecture score
   parse_result.player_data = get_seq_u8(bytes, i)
 
   if not meta_only:

@@ -314,6 +314,11 @@ type wire_kind* = enum
   wk_32
   wk_64
 
+type sync_state* = enum
+  unsynced
+  synced
+  changed_after_sync
+
 type parse_component* = object
   kind*: component_kind
   position*: point
@@ -338,6 +343,7 @@ type parse_result* = object
   components*: seq[parse_component]
   wires*: seq[parse_wire]
   save_id*: int # Unique id for each architectures and custom components. For levels it serves as a check against outdated versions
+  hub_id*: uint32
   gate*: int
   delay*: int
   menu_visible*: bool
@@ -346,7 +352,7 @@ type parse_result* = object
   description*: string
   camera_position*: point
   player_data*: seq[uint8]
-  hub_synced*: bool
+  synced*: sync_state
   campaign_bound*: bool
 
 proc `+`*(a: point, b: point): point =
@@ -399,20 +405,27 @@ proc get_i8*(input: seq[uint8], i: var int): int8 =
   result = cast[int8](input[i])
   i += 1
 
+proc get_sync_state*(input: seq[uint8], i: var int): sync_state =
+  result = sync_state(get_u8(input, i))
+
 proc get_point*(input: seq[uint8], i: var int): point =
   return point(
     x: get_i16(input, i), 
     y: get_i16(input, i)
   )
 
-proc get_seq_u8*(input: seq[uint8], i: var int): seq[uint8] =
-  let len = get_u16(input, i)
-  var j = 0'u16
+proc get_seq_u8*(input: seq[uint8], i: var int, bits32 = false): seq[uint8] =
+  var len = 0
+  if bits32:
+    len = get_u32(input, i).int
+  else:
+    len = get_u16(input, i).int
+  var j = 0
   while j < len:
     result.add(get_u8(input, i))
     j += 1
 
-proc get_seq_i64*(input: seq[uint8], i: var int): seq[int] =
+proc get_seq_int*(input: seq[uint8], i: var int): seq[int] =
   let len = get_u16(input, i)
   var j = 0'u16
   while j < len:
@@ -459,18 +472,27 @@ proc add_i16*(arr: var seq[uint8], input: int16) =
 proc add_u8*(arr: var seq[uint8], input: uint8) =
   arr.add(input)
 
+proc add_i8*(arr: var seq[uint8], input: int8) =
+  arr.add(cast[uint8](input))
+
 proc add_component_kind*(arr: var seq[uint8], input: component_kind) =
   arr.add_u16(ord(input).uint16)
 
 proc add_wire_kind*(arr: var seq[uint8], input: wire_kind) =
   arr.add(ord(input).uint8)
 
+proc add_sync_state*(arr: var seq[uint8], input: sync_state) =
+  arr.add(ord(input).uint8)
+
 proc add_point*(arr: var seq[uint8], input: point) =
   arr.add_i16(input.x)
   arr.add_i16(input.y)
 
-proc add_seq_uint8*(arr: var seq[uint8], input: seq[uint8]) =
-  arr.add_u16(input.len.uint16)
+proc add_seq_u8*(arr: var seq[uint8], input: seq[uint8], bits32 = false) =
+  if bits32:
+    arr.add_u32(input.len.uint32)
+  else:
+    arr.add_u16(input.len.uint16)
   for i in input:
     arr.add_u8(i)
 

@@ -1,11 +1,14 @@
 import os
 import libraries/supersnappy/supersnappy
-import common, versions/v49, versions/v0, versions/v1, versions/v2, versions/v3
+import common, versions/v49, versions/v0, versions/v1, versions/v2, versions/v3, versions/v4
 export common
-
-const SAVE_VERSION* = 3'u8
+const SAVE_VERSION* = 4'u8
 
 proc file_get_bytes*(file_name: string): seq[uint8] =
+  
+  if not fileExists(file_name): 
+    return
+  
   var file: File
   
   # Since the game loads files from 2 different threads, we can't assume the file isn't locked (on Windows)
@@ -40,6 +43,7 @@ proc parse_state*(input: seq[uint8], meta_only = false, solution = false): parse
     of 1:  v1.parse(input, meta_only, solution, result)
     of 2:  v2.parse(input, meta_only, solution, result)
     of 3:  v3.parse(input, meta_only, solution, result)
+    of 4:  v4.parse(input, meta_only, solution, result)
     else: discard
 
 proc add_component(arr: var seq[uint8], component: parse_component) =
@@ -65,7 +69,7 @@ proc add_wire(arr: var seq[uint8], wire: parse_wire) =
   arr.add_string(wire.comment)
   arr.add_path(wire.path)
 
-proc state_to_binary*(save_version: int, 
+proc state_to_binary*(save_id: int, 
                       components: seq[parse_component], 
                       wires: seq[parse_wire], 
                       gate: int, 
@@ -74,8 +78,9 @@ proc state_to_binary*(save_version: int,
                       clock_speed: uint32, 
                       description: string, 
                       camera_position: point,
-                      hub_synced: bool,
-                      campaign_bound: bool,
+                      hub_id: uint32,
+                      synced = unsynced,
+                      campaign_bound = false,
                       player_data = newSeq[uint8]()): seq[uint8] =
 
   var dependencies: seq[int]
@@ -88,7 +93,8 @@ proc state_to_binary*(save_version: int,
     if component.kind == WireCluster: continue
     components_to_save.add(id)
 
-  result.add_int(save_version)
+  result.add_int(save_id)
+  result.add_u32(hub_id)
   result.add_int(gate)
   result.add_int(delay)
   result.add_bool(menu_visible)
@@ -96,10 +102,10 @@ proc state_to_binary*(save_version: int,
   result.add_seq_int(dependencies)
   result.add_string(description)
   result.add_point(camera_position)
-  result.add_bool(hub_synced)
+  result.add_sync_state(synced)
   result.add_bool(campaign_bound)
-  result.add_bool(false) # Eventually used for architecture score
-  result.add_seq_uint8(player_data)
+  result.add_u16(0'u16) # Eventually used for architecture score
+  result.add_seq_u8(player_data)
 
   result.add_int(components_to_save.len)
   for id in components_to_save:
