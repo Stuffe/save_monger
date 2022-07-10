@@ -344,6 +344,7 @@ type parse_result* = object
   wires*: seq[parse_wire]
   save_id*: int # Unique id for each architectures and custom components. For levels it serves as a check against outdated versions
   hub_id*: uint32
+  hub_description*: string
   gate*: int
   delay*: int
   menu_visible*: bool

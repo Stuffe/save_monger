@@ -1,8 +1,8 @@
 import os
 import libraries/supersnappy/supersnappy
-import common, versions/v49, versions/v0, versions/v1, versions/v2, versions/v3, versions/v4
+import common, versions/[v49,v0,v1,v2,v3,v4,v5]
 export common
-const SAVE_VERSION* = 4'u8
+const SAVE_VERSION* = 5'u8
 
 proc file_get_bytes*(file_name: string): seq[uint8] =
   
@@ -44,6 +44,7 @@ proc parse_state*(input: seq[uint8], meta_only = false, solution = false): parse
     of 2:  v2.parse(input, meta_only, solution, result)
     of 3:  v3.parse(input, meta_only, solution, result)
     of 4:  v4.parse(input, meta_only, solution, result)
+    of 5:  v5.parse(input, meta_only, solution, result)
     else: discard
 
 proc add_component(arr: var seq[uint8], component: parse_component) =
@@ -79,6 +80,7 @@ proc state_to_binary*(save_id: int,
                       description: string, 
                       camera_position: point,
                       hub_id: uint32,
+                      hub_description: string,
                       synced = unsynced,
                       campaign_bound = false,
                       player_data = newSeq[uint8]()): seq[uint8] =
@@ -106,6 +108,7 @@ proc state_to_binary*(save_id: int,
   result.add_bool(campaign_bound)
   result.add_u16(0'u16) # Eventually used for architecture score
   result.add_seq_u8(player_data)
+  result.add_string(hub_description)
 
   result.add_int(components_to_save.len)
   for id in components_to_save:
