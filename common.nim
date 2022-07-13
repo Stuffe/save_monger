@@ -95,7 +95,7 @@ type component_kind* = enum
   Output64                = 88
   LevelOutputArch         = 89
   LevelOutputCounter      = 90
-  LevelInputOutput        = 91
+  DELETED_11              = 91
   Custom                  = 92
   VirtualCustom           = 93
   Program                 = 94
@@ -283,14 +283,14 @@ type component_kind* = enum
   Ashr64                  = 247
 
 
-const EARLY_KINDS*             = [LevelInput1, LevelInput2Pin, LevelInput3Pin, LevelInput4Pin, LevelInputConditions, LevelInput8, Input64, LevelInputCode, LevelOutput1, LevelOutput1Sum, LevelOutput1Car, LevelOutput2Pin, LevelOutput3Pin, LevelOutput4Pin, LevelOutput8, LevelOutputArch, LevelOutputCounter, LevelInputOutput, LevelOutput8z, DelayLine1, DelayLine16, BitMemory, Ram8, Hdd, Register8, Counter32, Counter16, Register16, DelayLine8, Custom, SolutionRom, RamFast, Counter64, Rom, Register32, Ram, Register8RedPlus, DelayLine64, Stack, Register64, DelayLine32, Counter8, Register8Red, RamLatency, RamDualLoad, DelayLine1, DelayLine16, BitMemory, Ram8, Hdd, Register8, Counter32, Counter16, Register16, DelayLine8, Custom, SolutionRom, RamFast, Counter64, Rom, Register32, Ram, Register8RedPlus, DelayLine64, Stack, Register64, DelayLine32, Counter8, Register8Red, RamLatency, RamDualLoad]
+const EARLY_KINDS*             = [LevelInput1, LevelInput2Pin, LevelInput3Pin, LevelInput4Pin, LevelInputConditions, LevelInput8, Input64, LevelInputCode, LevelOutput1, LevelOutput1Sum, LevelOutput1Car, LevelOutput2Pin, LevelOutput3Pin, LevelOutput4Pin, LevelOutput8, LevelOutputArch, LevelOutputCounter, LevelOutput8z, DelayLine1, DelayLine16, BitMemory, Ram8, Hdd, Register8, Counter32, Counter16, Register16, DelayLine8, Custom, SolutionRom, RamFast, Counter64, Rom, Register32, Ram, Register8RedPlus, DelayLine64, Stack, Register64, DelayLine32, Counter8, Register8Red, RamLatency, RamDualLoad, DelayLine1, DelayLine16, BitMemory, Ram8, Hdd, Register8, Counter32, Counter16, Register16, DelayLine8, Custom, SolutionRom, RamFast, Counter64, Rom, Register32, Ram, Register8RedPlus, DelayLine64, Stack, Register64, DelayLine32, Counter8, Register8Red, RamLatency, RamDualLoad]
 const LATE_KINDS*              = [VirtualDelayLine1, VirtualDelayLine8, VirtualDelayLine16, VirtualDelayLine32, VirtualDelayLine64, VirtualBitMemory, VirtualRam8, VirtualRegister8, VirtualCounter32, VirtualCounter16, VirtualRegister16, VirtualCustom, VirtualRamFast, VirtualCounter64, VirtualRegister32, VirtualRam, VirtualRegister8RedPlus, VirtualStack, VirtualRegister64, VirtualCounter8, VirtualRegister8Red, VirtualRamLatency, VirtualRom, VirtualSolutionRom, VirtualHdd, VirtualRamDualLoad]
 const CUSTOM_INPUTS*           = [Input1, Input8, Input16, Input32, Input64]
 const CUSTOM_OUTPUTS*          = [Output1, Output8, Output16, Output32, Output64]
 const CUSTOM_TRISTATE_OUTPUTS* = [Output1z, Output8z, Output16z, Output32z, Output64z]
 const CUSTOM_BIDIRECTIONAL*    = [Bidirectional1, Bidirectional8, Bidirectional16, Bidirectional32, Bidirectional64]
 const LATCHES*                 = [AndOrLatch, NandNandLatch, NorNorLatch]
-const DELETED_KINDS*           = [DELETED_0, DELETED_1, DELETED_2, DELETED_3, DELETED_4, DELETED_5, DELETED_6, DELETED_7, DELETED_9, DELETED_9, DELETED_10]
+const DELETED_KINDS*           = [DELETED_0, DELETED_1, DELETED_2, DELETED_3, DELETED_4, DELETED_5, DELETED_6, DELETED_7, DELETED_9, DELETED_9, DELETED_10, DELETED_11]
 
 type point* = object
   x*: int16
