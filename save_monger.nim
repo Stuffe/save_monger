@@ -1,6 +1,6 @@
 import os
 import libraries/supersnappy/supersnappy
-import common, versions/[v49,v0,v1,v2,v3,v4,v5]
+import common, versions/[v0,v1,v2,v3,v4,v5]
 export common
 const SAVE_VERSION* = 5'u8
 
@@ -38,13 +38,12 @@ proc parse_state*(input: seq[uint8], meta_only = false, solution = false): parse
   result.version = input[0]
 
   case result.version:
-    of 49: v49.parse(input, meta_only, solution, result) # This is an ancient ascii version, where 49 meant "1"
-    of 0:  v0.parse(input, meta_only, solution, result)
-    of 1:  v1.parse(input, meta_only, solution, result)
-    of 2:  v2.parse(input, meta_only, solution, result)
-    of 3:  v3.parse(input, meta_only, solution, result)
-    of 4:  v4.parse(input, meta_only, solution, result)
-    of 5:  v5.parse(input, meta_only, solution, result)
+    of 0: v0.parse(input, meta_only, solution, result)
+    of 1: v1.parse(input, meta_only, solution, result)
+    of 2: v2.parse(input, meta_only, solution, result)
+    of 3: v3.parse(input, meta_only, solution, result)
+    of 4: v4.parse(input, meta_only, solution, result)
+    of 5: v5.parse(input, meta_only, solution, result)
     else: discard
 
 proc add_component(arr: var seq[uint8], component: parse_component) =
