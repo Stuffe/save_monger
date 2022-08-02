@@ -1,8 +1,8 @@
 import os
 import libraries/supersnappy/supersnappy
-import common, versions/[v0,v1,v2,v3,v4,v5]
+import common, versions/[v0,v1,v2,v3,v4,v5,v6]
 export common
-const SAVE_VERSION* = 5'u8
+const LATES_VERSION* = 6'u8
 
 proc file_get_bytes*(file_name: string): seq[uint8] =
   
@@ -44,6 +44,7 @@ proc parse_state*(input: seq[uint8], meta_only = false, solution = false): parse
     of 3: v3.parse(input, meta_only, solution, result)
     of 4: v4.parse(input, meta_only, solution, result)
     of 5: v5.parse(input, meta_only, solution, result)
+    of 6: v6.parse(input, meta_only, solution, result)
     else: discard
 
 proc add_component(arr: var seq[uint8], component: parse_component) =
@@ -54,6 +55,8 @@ proc add_component(arr: var seq[uint8], component: parse_component) =
   arr.add_string(component.custom_string)
   arr.add_u64(component.setting_1)
   arr.add_u64(component.setting_2)
+  arr.add_i16(component.ui_order)
+
   if component.kind == Custom:
     arr.add_int(component.custom_id)
     arr.add_point(component.custom_displacement)
@@ -117,4 +120,4 @@ proc state_to_binary*(save_id: int,
   for id, wire in wires:
     result.add_wire(wire)
 
-  return SAVE_VERSION & compress(result)
+  return LATES_VERSION & compress(result)

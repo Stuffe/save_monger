@@ -332,6 +332,7 @@ type parse_component* = object
   setting_1*: uint64
   setting_2*: uint64
   selected_programs*: Table[int, string]
+  ui_order*: int16
 
 type parse_wire* = object
   path*: seq[point]
