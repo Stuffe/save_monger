@@ -82,7 +82,7 @@ func get_wires(input: seq[uint8], i: var int): seq[parse_wire] =
   for j in 0..len - 1:
     result.add(get_wire(input, i))
 
-proc parse*(compressed: seq[uint8], meta_only: bool, solution: bool, parse_result: var parse_result) =
+proc parse*(compressed: seq[uint8], headers_only: bool, solution: bool, parse_result: var parse_result) =
   var bytes = uncompress(compressed[1..^1])
   var i = 0
 
@@ -101,6 +101,6 @@ proc parse*(compressed: seq[uint8], meta_only: bool, solution: bool, parse_resul
   parse_result.player_data = get_seq_u8(bytes, i)
   parse_result.hub_description = get_string(bytes, i)
 
-  if not meta_only:
+  if not headers_only:
     parse_result.components = get_components(bytes, i, solution)
     parse_result.wires = get_wires(bytes, i)

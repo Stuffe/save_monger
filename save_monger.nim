@@ -23,7 +23,7 @@ proc file_get_bytes*(file_name: string): seq[uint8] =
   discard file.readBytes(buffer, 0, len)
   return buffer
 
-proc parse_state*(input: seq[uint8], meta_only = false, solution = false): parse_result =
+proc parse_state*(input: seq[uint8], headers_only = false, solution = false): parse_result =
   
   # Versions modify the result object instead of returning a new one. 
   # This is so that defaults can be set here for values old versions may not parse
@@ -38,13 +38,13 @@ proc parse_state*(input: seq[uint8], meta_only = false, solution = false): parse
   result.version = input[0]
 
   case result.version:
-    of 0: v0.parse(input, meta_only, solution, result)
-    of 1: v1.parse(input, meta_only, solution, result)
-    of 2: v2.parse(input, meta_only, solution, result)
-    of 3: v3.parse(input, meta_only, solution, result)
-    of 4: v4.parse(input, meta_only, solution, result)
-    of 5: v5.parse(input, meta_only, solution, result)
-    of 6: v6.parse(input, meta_only, solution, result)
+    of 0: v0.parse(input, headers_only, solution, result)
+    of 1: v1.parse(input, headers_only, solution, result)
+    of 2: v2.parse(input, headers_only, solution, result)
+    of 3: v3.parse(input, headers_only, solution, result)
+    of 4: v4.parse(input, headers_only, solution, result)
+    of 5: v5.parse(input, headers_only, solution, result)
+    of 6: v6.parse(input, headers_only, solution, result)
     else: discard
 
 proc add_component(arr: var seq[uint8], component: parse_component) =

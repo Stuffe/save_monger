@@ -88,7 +88,7 @@ func get_wires(input: seq[uint8], i: var int): seq[parse_wire] =
   for j in 0..len - 1:
     result.add(get_wire(input, i))
 
-proc parse*(bytes: seq[uint8], meta_only: bool, solution: bool, parse_result: var parse_result) =
+proc parse*(bytes: seq[uint8], headers_only: bool, solution: bool, parse_result: var parse_result) =
   var i = 1 # 0th byte is version
 
   parse_result.save_id = get_int(bytes, i)
@@ -103,6 +103,6 @@ proc parse*(bytes: seq[uint8], meta_only: bool, solution: bool, parse_result: va
   parse_result.camera_position = get_point(bytes, i)
   discard get_bool(bytes, i)
 
-  if not meta_only:
+  if not headers_only:
     parse_result.components = get_components(bytes, i, solution)
     parse_result.wires = get_wires(bytes, i)

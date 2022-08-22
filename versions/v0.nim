@@ -53,7 +53,7 @@ func get_wires(bytes: seq[uint8], i: var int): seq[parse_wire] =
   for j in 0..len - 1:
     result.add(get_wire(bytes, i))
 
-proc parse*(bytes: seq[uint8], meta_only: bool, solution: bool, parse_result: var parse_result) =
+proc parse*(bytes: seq[uint8], headers_only: bool, solution: bool, parse_result: var parse_result) =
   var i = 1 # 0th byte is version
 
   parse_result.save_id = get_int(bytes, i)
@@ -65,6 +65,6 @@ proc parse*(bytes: seq[uint8], meta_only: bool, solution: bool, parse_result: va
   parse_result.dependencies = get_seq_i64(bytes, i)
   parse_result.description = get_string(bytes, i)
 
-  if not meta_only:
+  if not headers_only:
     parse_result.components = get_components(bytes, i)
     parse_result.wires = get_wires(bytes, i)
