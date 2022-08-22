@@ -1,4 +1,4 @@
-# save_monger
+# Save Monger
 This is the production code that is used to load and save game state in for [Turing Complete](https://store.steampowered.com/app/1444480/Turing_Complete/).
 
 It exposes 3 functions: 
@@ -18,5 +18,5 @@ This will serialize game state to an array of bytes. You will probably want to r
 # License
 This code is [CC0](https://creativecommons.org/share-your-work/public-domain/cc0/), however the included library SuperSnappy is MIT license.
 
-# Rust version
-Thanks to danielrab for porting this to rust: https://crates.io/crates/tc_save_monger
+# Unofficial Rust port
+https://crates.io/crates/tc_save_monger (Credit: danielrab)
