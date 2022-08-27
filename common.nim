@@ -140,11 +140,11 @@ type component_kind* = enum
   Output16                = 126
   Output32                = 127
 
-  Bidirectional1          = 128
-  Bidirectional8          = 129
-  Bidirectional16         = 130
-  Bidirectional32         = 131
-  Bidirectional64         = 132
+  DELETED_12              = 128
+  DELETED_13              = 129
+  DELETED_14              = 130
+  DELETED_15              = 131
+  DELETED_16              = 132
 
   Buffer8                 = 133
   Buffer16                = 134
@@ -282,8 +282,19 @@ type component_kind* = enum
   Ashr32                  = 246
   Ashr64                  = 247
 
-const EARLY_KINDS*             = {LevelInput1, LevelInput2Pin, LevelInput3Pin, LevelInput4Pin, LevelInputConditions, LevelInput8, Input64, LevelInputCode, LevelOutput1, LevelOutput1Sum, LevelOutput1Car, LevelOutput2Pin, LevelOutput3Pin, LevelOutput4Pin, LevelOutput8, LevelOutputArch, LevelOutputCounter, LevelOutput8z, DelayLine1, DelayLine16, BitMemory, Ram8, Hdd, Register8, Counter32, Counter16, Register16, DelayLine8, Custom, SolutionRom, RamFast, Counter64, Rom, Register32, Ram, Register8RedPlus, DelayLine64, Stack, Register64, DelayLine32, Counter8, Register8Red, RamLatency, RamDualLoad, DelayLine1, DelayLine16, BitMemory, Ram8, Hdd, Register8, Counter32, Counter16, Register16, DelayLine8, Custom, SolutionRom, RamFast, Counter64, Rom, Register32, Ram, Register8RedPlus, DelayLine64, Stack, Register64, DelayLine32, Counter8, Register8Red, RamLatency, RamDualLoad}
-const LATE_KINDS*              = {VirtualDelayLine1, VirtualDelayLine8, VirtualDelayLine16, VirtualDelayLine32, VirtualDelayLine64, VirtualBitMemory, VirtualRam8, VirtualRegister8, VirtualCounter32, VirtualCounter16, VirtualRegister16, VirtualCustom, VirtualRamFast, VirtualCounter64, VirtualRegister32, VirtualRam, VirtualRegister8RedPlus, VirtualStack, VirtualRegister64, VirtualCounter8, VirtualRegister8Red, VirtualRamLatency, VirtualRom, VirtualSolutionRom, VirtualHdd, VirtualRamDualLoad}
+  Bidirectional1          = 248
+  VirtualBidirectional1   = 249
+  Bidirectional8          = 250
+  VirtualBidirectional8   = 251
+  Bidirectional16         = 252
+  VirtualBidirectional16  = 253
+  Bidirectional32         = 254
+  VirtualBidirectional32  = 255
+  Bidirectional64         = 256
+  VirtualBidirectional64  = 257
+
+const EARLY_KINDS*             = {LevelInput1, LevelInput2Pin, LevelInput3Pin, LevelInput4Pin, LevelInputConditions, LevelInput8, Input64, LevelInputCode, LevelOutput1, LevelOutput1Sum, LevelOutput1Car, LevelOutput2Pin, LevelOutput3Pin, LevelOutput4Pin, LevelOutput8, LevelOutputArch, LevelOutputCounter, LevelOutput8z, DelayLine1, DelayLine16, BitMemory, Ram8, Hdd, Register8, Counter32, Counter16, Register16, DelayLine8, Custom, SolutionRom, RamFast, Counter64, Rom, Register32, Ram, Register8RedPlus, DelayLine64, Stack, Register64, DelayLine32, Counter8, Register8Red, RamLatency, RamDualLoad, DelayLine1, DelayLine16, BitMemory, Ram8, Hdd, Register8, Counter32, Counter16, Register16, DelayLine8, Custom, SolutionRom, RamFast, Counter64, Rom, Register32, Ram, Register8RedPlus, DelayLine64, Stack, Register64, DelayLine32, Counter8, Register8Red, RamLatency, RamDualLoad, Bidirectional1, Bidirectional8, Bidirectional16, Bidirectional32, Bidirectional64}
+const LATE_KINDS*              = {VirtualCounter8, VirtualCounter64, VirtualRam8, VirtualStack, VirtualRegister8, VirtualRegister8Red, VirtualRegister8RedPlus, VirtualRegister64, VirtualBitMemory, VirtualCustom, VirtualDelayLine1, VirtualRegister16, VirtualCounter16, VirtualRegister32, VirtualCounter32, VirtualRam, VirtualRamLatency, VirtualRamFast, VirtualRom, VirtualSolutionRom, VirtualDelayLine8, VirtualDelayLine16, VirtualDelayLine32, VirtualDelayLine64, VirtualRamDualLoad, VirtualHdd, VirtualBidirectional1, VirtualBidirectional8, VirtualBidirectional16, VirtualBidirectional32, VirtualBidirectional64}
 const CUSTOM_INPUTS*           = {Input1, Input8, Input16, Input32, Input64}
 const CUSTOM_OUTPUTS*          = {Output1, Output8, Output16, Output32, Output64}
 const CUSTOM_TRISTATE_OUTPUTS* = {Output1z, Output8z, Output16z, Output32z, Output64z}
@@ -291,7 +302,7 @@ const CUSTOM_BIDIRECTIONAL*    = {Bidirectional1, Bidirectional8, Bidirectional1
 const LEVEL_INPUTS*            = {LevelInput1, LevelInput2Pin, LevelInput3Pin, LevelInput4Pin, LevelInput8, LevelInputArch, LevelInputCode, LevelInputConditions}
 const LEVEL_OUTPUTS*           = {LevelOutput1, LevelOutput1Car, LevelOutput1Sum, LevelOutput2Pin, LevelOutput3Pin, LevelOutput4Pin, LevelOutput8, LevelOutput8z, LevelOutputArch, LevelOutputCounter}
 const LATCHES*                 = {AndOrLatch, NandNandLatch, NorNorLatch}
-const DELETED_KINDS*           = {DELETED_0, DELETED_1, DELETED_2, DELETED_3, DELETED_4, DELETED_5, DELETED_6, DELETED_7, DELETED_9, DELETED_9, DELETED_10, DELETED_11}
+const DELETED_KINDS*           = {DELETED_0, DELETED_1, DELETED_2, DELETED_3, DELETED_4, DELETED_5, DELETED_6, DELETED_7, DELETED_9, DELETED_9, DELETED_10, DELETED_11, DELETED_12, DELETED_13, DELETED_14, DELETED_15, DELETED_16}
 
 type point* = object
   x*: int16
