@@ -16,7 +16,11 @@ const DIRECTIONS = [
 
 func get_component(input: seq[uint8], i: var int, solution = false): parse_component =
   try: # Only fails for obsolete components (deleted enum values)
-    result = parse_component(kind: component_kind(get_u16(input, i).int))
+    var kind = component_kind(get_u16(input, i).int)
+    let index = [DELETED_12, DELETED_13, DELETED_14, DELETED_15, DELETED_16].find(kind)
+    if index != -1:
+      kind = [Bidirectional1, Bidirectional8, Bidirectional16, Bidirectional32, Bidirectional64][index]
+    result = parse_component(kind: kind)
   except: discard
   if solution and result.kind == Rom:
     result.kind = SolutionRom

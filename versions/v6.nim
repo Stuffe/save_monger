@@ -20,6 +20,7 @@ func get_component(input: seq[uint8], i: var int, solution = false): parse_compo
     if index != -1:
       kind = [Bidirectional1, Bidirectional8, Bidirectional16, Bidirectional32, Bidirectional64][index]
     result = parse_component(kind: kind)
+    #result = parse_component(kind: component_kind(get_u16(input, i).int)) # For v7 and beyond
   except: discard
   if solution and result.kind == Rom:
     result.kind = SolutionRom

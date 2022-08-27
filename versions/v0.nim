@@ -23,7 +23,11 @@ func get_seq_i64(bytes: seq[uint8], i: var int): seq[int] =
 
 func get_component(bytes: seq[uint8], i: var int): parse_component =
   try: # Only fails for obsolete components (deleted enum values)
-    result = parse_component(kind: component_kind(get_u16(bytes, i).int))
+    var kind = component_kind(get_u16(bytes, i).int)
+    let index = [DELETED_12, DELETED_13, DELETED_14, DELETED_15, DELETED_16].find(kind)
+    if index != -1:
+      kind = [Bidirectional1, Bidirectional8, Bidirectional16, Bidirectional32, Bidirectional64][index]
+    result = parse_component(kind: kind)
   except: discard
   result.position = get_point(bytes, i)
   result.rotation = get_u8(bytes, i)
