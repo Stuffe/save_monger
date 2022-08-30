@@ -302,7 +302,7 @@ const CUSTOM_BIDIRECTIONAL*    = {Bidirectional1, Bidirectional8, Bidirectional1
 const LEVEL_INPUTS*            = {LevelInput1, LevelInput2Pin, LevelInput3Pin, LevelInput4Pin, LevelInput8, LevelInputArch, LevelInputCode, LevelInputConditions}
 const LEVEL_OUTPUTS*           = {LevelOutput1, LevelOutput1Car, LevelOutput1Sum, LevelOutput2Pin, LevelOutput3Pin, LevelOutput4Pin, LevelOutput8, LevelOutput8z, LevelOutputArch, LevelOutputCounter}
 const LATCHES*                 = {AndOrLatch, NandNandLatch, NorNorLatch}
-const DELETED_KINDS*           = {DELETED_0, DELETED_1, DELETED_2, DELETED_3, DELETED_4, DELETED_5, DELETED_6, DELETED_7, DELETED_9, DELETED_9, DELETED_10, DELETED_11, DELETED_12, DELETED_13, DELETED_14, DELETED_15, DELETED_16}
+const DELETED_KINDS*           = {DELETED_0, DELETED_1, DELETED_2, DELETED_3, DELETED_4, DELETED_5, DELETED_6, DELETED_7, DELETED_9, DELETED_9, DELETED_10, DELETED_11, DELETED_12, DELETED_13, DELETED_14, DELETED_15, DELETED_16, DELETED_17, DELETED_18}
 
 type point* = object
   x*: int16
