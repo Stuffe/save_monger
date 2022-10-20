@@ -369,14 +369,24 @@ type parse_result* = object
   synced*: sync_state
   campaign_bound*: bool
 
+# Unfortunately casting to uints is necessary to avoid crashing on under / overflows
 proc `+`*(a: point, b: point): point =
-  return point(x: a.x + b.x, y: a.y + b.y)
+  return point(
+    x: cast[int16](cast[uint16](a.x) + cast[uint16](b.x)), 
+    y: cast[int16](cast[uint16](a.y) + cast[uint16](b.y))
+  )
 
 proc `-`*(a: point, b: point): point =
-  return point(x: a.x - b.x, y: a.y - b.y)
+  return point(
+    x: cast[int16](cast[uint16](a.x) - cast[uint16](b.x)), 
+    y: cast[int16](cast[uint16](a.y) - cast[uint16](b.y))
+  )
 
 proc `*`*(a: point, b: int16): point =
-  return point(x: a.x * b, y: a.y * b)
+  return point(
+    x: cast[int16](cast[uint16](a.x) * cast[uint16](b)),
+    y: cast[int16](cast[uint16](a.y) * cast[uint16](b))
+  )
 
 proc get_bool*(input: seq[uint8], i: var int): bool =
   result = input[i] != 0
