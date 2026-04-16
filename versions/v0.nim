@@ -1,12 +1,12 @@
 import ../common
 
-func get_point(bytes: seq[uint8], i: var int): point =
-  return point(
+func get_point(bytes: seq[uint8], i: var int): Point =
+  return Point(
     x: get_i8(bytes, i).int16, 
     y: get_i8(bytes, i).int16
   )
 
-func get_seq_point(bytes: seq[uint8], i: var int): seq[point] =
+func get_seq_point(bytes: seq[uint8], i: var int): seq[Point] =
   let len = get_int(bytes, i)
   for j in 0..len - 1:
     result.add(get_point(bytes, i))
@@ -21,46 +21,41 @@ func get_seq_i64(bytes: seq[uint8], i: var int): seq[int] =
   for j in 0..len - 1:
     result.add(get_int(bytes, i))
 
-func get_component(bytes: seq[uint8], i: var int): parse_component =
-  try: # Only fails for obsolete components (deleted enum values)
-    var kind = component_kind(get_u16(bytes, i).int)
-    let index = [DELETED_12, DELETED_13, DELETED_14, DELETED_15, DELETED_16].find(kind)
-    if index != -1:
-      kind = [Bidirectional1, Bidirectional8, Bidirectional16, Bidirectional32, Bidirectional64][index]
-    result = parse_component(kind: kind)
-  except: discard
-  result.position = get_point(bytes, i)
-  result.rotation = get_u8(bytes, i)
-  result.permanent_id = get_u32(bytes, i).int
-  result.custom_string = get_string(bytes, i)
-  if result.kind in [Program8_1, DELETED_6, DELETED_7, Program8_4, Program]:
-    discard get_string(bytes, i)
-  elif result.kind == Custom:
-    result.custom_id = get_int(bytes, i)
+proc get_component(bytes: seq[uint8], i: var int): Component =
+  var kind = ComponentKind(get_u16(bytes, i).int)
+  let position = get_point(bytes, i)
+  let rotation = get_u8(bytes, i)
+  let permanent_id = id(get_u32(bytes, i).int)
+  let custom_string = get_string(bytes, i)
+  var custom_id: int
+  if kind == com_custom:
+    custom_id = get_int(bytes, i)
 
-func get_components(bytes: seq[uint8], i: var int): seq[parse_component] =
+  return Component(kind: kind, position: position, rotation: rotation, custom_string: custom_string, custom_id: custom_id, permanent_id: permanent_id)
+
+proc get_components(bytes: seq[uint8], i: var int): seq[Component] =
   let len = get_int(bytes, i)
   for j in 0..len - 1:
     let comp = get_component(bytes, i)
-    if comp.kind == Error or comp.kind in DELETED_KINDS: continue
+    if comp.kind == com_none: continue
     result.add(comp)
 
-func get_wire(bytes: seq[uint8], i: var int): parse_wire =
+func get_wire(bytes: seq[uint8], i: var int): Wire =
   discard get_u32(bytes, i).int # Used to be permanent id
-  result.kind = wire_kind(get_u8(bytes, i))
+  discard get_u8(bytes, i)
   result.color = get_u8(bytes, i)
   result.comment = get_string(bytes, i)
-  result.path = get_seq_point(bytes, i)
+  result.path = point_list_to_path(get_seq_point(bytes, i))
 
-func get_wires(bytes: seq[uint8], i: var int): seq[parse_wire] =
+func get_wires(bytes: seq[uint8], i: var int): seq[Wire] =
   let len = get_int(bytes, i)
   for j in 0..len - 1:
     result.add(get_wire(bytes, i))
 
-proc parse*(bytes: seq[uint8], headers_only: bool, solution: bool, parse_result: var parse_result) =
+proc parse*(bytes: seq[uint8], headers_only: bool, solution: bool, parse_result: var ParseResult) =
   var i = 1 # 0th byte is version
 
-  parse_result.save_id = get_int(bytes, i)
+  parse_result.custom_id = get_int(bytes, i)
   parse_result.gate = get_u32(bytes, i).int
   parse_result.delay = get_u32(bytes, i).int
   parse_result.menu_visible = get_bool(bytes, i)
@@ -70,5 +65,5 @@ proc parse*(bytes: seq[uint8], headers_only: bool, solution: bool, parse_result:
   parse_result.description = get_string(bytes, i)
 
   if not headers_only:
-    parse_result.components = get_components(bytes, i)
-    parse_result.wires = get_wires(bytes, i)
+    parse_result.schematic.components = get_components(bytes, i)
+    add_wires(parse_result.schematic, get_wires(bytes, i))

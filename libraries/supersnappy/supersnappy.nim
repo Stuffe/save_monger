@@ -59,11 +59,13 @@ template failCompress() =
     SnappyError, "Unable to compress buffer"
   )
 
-func uncompress*(dst: var string, src: string) {.raises: [SnappyError].} =
+func uncompress*(dst: var string, src: string, max_size: uint32 = uint32.high) {.raises: [SnappyError].} =
   ## Uncompresses src into dst. This resizes dst as needed and starts writing
   ## at dst index 0.
 
   let (uncompressedLen, bytesRead) = varint(src)
+  if uncompressedLen > max_size:
+    failUncompress()
   if bytesRead <= 0:
     failUncompress()
 
@@ -138,13 +140,13 @@ func uncompress*(dst: var string, src: string) {.raises: [SnappyError].} =
   if op != dstLen:
     failUncompress()
 
-func uncompress*(src: string): string {.inline.} =
+func uncompress*(src: string, max_size: uint32 = uint32.high): string {.inline.} =
   ## Uncompresses src and returns the uncompressed data.
-  uncompress(result, src)
+  uncompress(result, src, max_size)
 
-func uncompress*(src: seq[uint8]): seq[uint8] {.inline.} =
+func uncompress*(src: seq[uint8], max_size: uint32 = uint32.high): seq[uint8] {.inline.} =
   ## Uncompresses src and returns the uncompressed data.
-  cast[seq[uint8]](uncompress(cast[string](src)))
+  cast[seq[uint8]](uncompress(cast[string](src), max_size))
 
 func emitLiteral(
   dst: var string,

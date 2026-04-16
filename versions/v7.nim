@@ -14,31 +14,77 @@ const DIRECTIONS = [
 ]
 
 proc get_component(input: seq[uint8], i: var int, solution = false): Component =
-  let kind = ComponentKind(get_u16(input, i).int)
+  let idx = get_u16(input, i).int
+  var kind = com_none
+  if idx <= ComponentKind.high.int:
+    kind = ComponentKind(idx)
 
-  var position = get_point(input, i)
-  let rotation = get_u8(input, i)
-  let permanent_id = id(get_int(input, i))
-  let custom_string = get_string(input, i)
-  var settings = @[get_u64(input, i)]
-  settings.add(get_u64(input, i))
-  var custom_id: int
+  result = Component(kind: kind)
+  result.position = get_point(input, i)
+  result.rotation = get_u8(input, i)
+  result.permanent_id = id(get_int(input, i))
+  result.custom_string = get_string(input, i)
+  let settings_len = get_u16(input, i)
+  var j = 0
+  while j < settings_len.int:
+    result.settings.add(get_u64(input, i))
+    j += 1
+  discard get_int(input, i)
+  result.ui_order = get_i16(input, i)
+  result.word_size = get_bits(input, i)
+  discard id(get_int(input, i))
 
-  if kind == com_custom:
-    custom_id = get_int(input, i)
-    position = result.position + get_point(input, i)
+  case result.kind:
+    of com_custom:
+      result.custom_id = get_int(input, i)
+      var j = 0'u16
+      let static_states_len = get_u16(input, i)
+      while j < static_states_len:
+        let a = id(get_int(input, i))
+        let b = get_bits(input, i)
+        result.custom_explicit_word_sizes[a] = b
+        j += 1
+      j = 0
+      let custom_linked_word_sizes_len = get_u16(input, i)
+      while j < custom_linked_word_sizes_len:
+        discard id(get_int(input, i))
+        discard id(get_int(input, i))
+        #result.custom_linked_word_sizes[a] = b
+        j += 1
 
-  return Component(kind: kind, position: position, rotation: rotation, custom_string: custom_string, custom_id: custom_id, permanent_id: permanent_id)
+    of com_register_word_config, com_probe_memory_bit, com_probe_memory_word, com_static_value, com_deleted_1, com_screen:
+      let len = get_u16(input, i)
+      var j = 0'u16
+      while j < len:
+        let key = get_string(input, i)
+        result.selected_programs[key] = AsmRelativePath(value: get_string(input, i))
+        j += 1
+      
+      let watched_component_count = get_u16(input, i).int
+      var k = 0
+      while k < watched_component_count:
+        result.linked_components.add(LinkedComponent(
+          permanent_id: id(get_int(input, i)),
+          inner_id: id(get_int(input, i)),
+          name: get_string(input, i),
+        ))
+        k += 1
+
+      if result.kind in MIN_ONE_WATCHED_COMPONENT and result.linked_components.len == 0:
+        result.linked_components.add(LinkedComponent())
+
+    else: discard
+
+  while result.settings.len < COMPONENT_DEFAULT_SETTING.getOrDefault(result.kind).len:
+    result.settings.add(COMPONENT_DEFAULT_SETTING[result.kind][result.settings.len])
 
 proc get_components(input: seq[uint8], i: var int, solution = false): seq[Component] =
   let len = get_int(input, i)
   for j in 0..len - 1:
     let comp = get_component(input, i, solution)
-    if comp.kind == com_none: continue
     result.add(comp)
 
 func get_wire(input: seq[uint8], i: var int): Wire =
-  discard get_u8(input, i)
   result.color = get_u8(input, i)
   result.comment = get_string(input, i)
   
@@ -75,6 +121,7 @@ func get_wire(input: seq[uint8], i: var int): Wire =
 
 func get_wires(input: seq[uint8], i: var int): seq[Wire] =
   let len = get_int(input, i)
+
   for j in 0..len - 1:
     result.add(get_wire(input, i))
 
@@ -87,14 +134,14 @@ proc parse*(compressed: seq[uint8], headers_only: bool, solution: bool, parse_re
   parse_result.gate = get_int(bytes, i)
   parse_result.delay = get_int(bytes, i)
   parse_result.menu_visible = get_bool(bytes, i)
-  parse_result.clock_speed = get_u32(bytes, i)
+  parse_result.clock_speed = get_u64(bytes, i)
   parse_result.dependencies = get_seq_int(bytes, i)
   parse_result.description = get_string(bytes, i)
   discard get_point(bytes, i)
   parse_result.synced = get_sync_state(bytes, i)
-  discard get_bool(bytes, i)
   discard get_u16(bytes, i) # Eventually used for architecture score
   parse_result.player_data = get_seq_u8(bytes, i)
+  parse_result.hub_description = get_string(bytes, i)
 
   if not headers_only:
     parse_result.schematic.components = get_components(bytes, i, solution)
