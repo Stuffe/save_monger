@@ -1113,8 +1113,7 @@ proc get_id*(allocation: Allocation): string =
   assert allocation.index != 0
   return "id" & $allocation.index
 
-proc `$`*(alloc: Allocation): string =
-  assert false, "FIXME"
+#proc `$`*(alloc: Allocation): string = assert false, "FIXME"
 
 proc teleport_path*(path: seq[Point]): Path =
   return teleport_path(path[0], path[1])
