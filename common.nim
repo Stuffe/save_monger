@@ -439,7 +439,6 @@ type Component* = object
   linked_components*: seq[LinkedComponent]
   linked_indexes*: seq[LinkedIndex]
   is_overlap_ghost*: bool
-  first_read_port*: int
   
   calculated_gate*: int
   calculated_delay*: int
@@ -942,28 +941,30 @@ proc add_table_int_string*(arr: var seq[uint8], input: Table[int, string]) =
 proc pop_first*(path: var Path) =
   if path.segments.len == 0:
     return
-  if path.segments[0].length <= 1:
+  assert path.segments[0].length != 0
+  path.start += DIRECTIONS[path.segments[0].direction]
+  if path.segments[0].length == 1:
     path.segments.delete(0)
     if path.segments.len == 0:
       # Make sure fake start and end gets out of the way for whoever is using this
       path.start = Point(x: int16.high)
       path.finish = path.start
-    return
-  path.segments[0].length -= 1
-  path.start += DIRECTIONS[path.segments[0].direction]
+  else:
+    path.segments[0].length -= 1
 
 proc pop_last*(path: var Path) =
   if path.segments.len == 0:
     return
-  if path.segments[^1].length <= 1:
+  assert path.segments[^1].length != 0
+  path.finish -= DIRECTIONS[path.segments[^1].direction]
+  if path.segments[^1].length == 1:
     discard path.segments.pop()
     if path.segments.len == 0:
       # Make sure fake start and end gets out of the way for whoever is using this
       path.start = Point(x: int16.high)
       path.finish = path.start
-    return
-  path.segments[^1].length -= 1
-  path.finish -= DIRECTIONS[path.segments[^1].direction]
+  else:
+    path.segments[^1].length -= 1
 
 proc reverse*(path: Path): Path =
   result.finish = path.start
