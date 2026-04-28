@@ -1080,6 +1080,9 @@ proc allocate_memory*(orig_amount: Bytes, can_be_z: bool): Allocation =
 
   var amount = orig_amount
 
+  if amount.amount == 0:
+    amount.amount = 1
+
   # Simplex does not support store / loads of below odd sizes
   if amount.amount == 3:
     amount.amount = 4
