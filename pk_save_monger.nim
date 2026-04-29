@@ -98,8 +98,9 @@ proc serialize_minimal_package*(
     arr.add_u16(used_components.len.uint16)
     for component_kind in used_components:
       let component = Component(kind: component_kind)
-      arr.add_int(get_gate_cost(component))
-      arr.add_int(get_delay_cost(component))
+      let cost = get_cost(component)
+      arr.add_int(cost.gate)
+      arr.add_int(cost.delay)
   else:
     arr.add_u16(0)
 
