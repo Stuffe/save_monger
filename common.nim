@@ -90,7 +90,7 @@ type ComponentKind* = enum
   com_probe_memory_word = 83
   com_probe_wire_bit = 84
   com_probe_wire_word = 85
-  com_config_delay = 86
+  com_deleted_20 = 86
   com_halt = 87
   com_deleted_1 = 88
   com_segment_display = 89
@@ -134,7 +134,7 @@ const UNUSED_COMPONENTS* = {
   com_none, com_deleted_1, com_deleted_2, com_deleted_3, com_deleted_4, com_deleted_5,
   com_deleted_6, com_deleted_7, com_deleted_8, com_deleted_9, com_deleted_10,
   com_deleted_11, com_deleted_12, com_deleted_13, com_deleted_14, com_deleted_15,
-  com_deleted_16, com_deleted_17, com_deleted_18, com_deleted_19,
+  com_deleted_16, com_deleted_17, com_deleted_18, com_deleted_19, com_deleted_20,
 }
 const ARCHITECTURE_KINDS* = {com_level_input_switched, com_level_output_switched}
 const WATCHABLE_KINDS* = {
@@ -249,7 +249,6 @@ const COMPONENT_DEFAULT_SETTING* = {
   com_constant: @[0'u64],
   com_cc_input: @[2'u64],
   com_cc_output: @[0'u64],
-  com_config_delay: @[0'u64],
   com_level_gate: @[0'u64],
   com_segment_display: @[0'u64],
   com_keyboard: @[1'u64],
@@ -439,7 +438,7 @@ type Component* = object
   linked_components*: seq[LinkedComponent]
   linked_indexes*: seq[LinkedIndex]
   is_overlap_ghost*: bool
-  
+
   calculated_gate*: int
   calculated_delay*: int
   parent_ram_id*: int
@@ -1080,7 +1079,7 @@ proc allocate_memory*(orig_amount: Bytes, can_be_z: bool): Allocation =
 
   var amount = orig_amount
 
-  if amount.amount == 0:
+  if amount.amount <= 0:
     amount.amount = 1
 
   # Simplex does not support store / loads of below odd sizes
@@ -1091,7 +1090,7 @@ proc allocate_memory*(orig_amount: Bytes, can_be_z: bool): Allocation =
     amount.amount = 8
 
   var allocation = Allocation(
-    index: private_next_memory_index, 
+    index: private_next_memory_index,
     size: amount,
     can_be_z: can_be_z,
   )
