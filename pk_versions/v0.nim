@@ -40,8 +40,8 @@ proc deserialize*(
       result.data.scores = collect(newSeq()):
         for _ in 0 ..< num_score:
           let kind = ComponentKind(arr.get_u8(i))
-          let gate = arr.get_int(i)
-          let delay = arr.get_int(i)
+          let gate = arr.get_i64(i)
+          let delay = arr.get_i64(i)
           (kind, gate, delay)
     of NoScore:
       var step = 0

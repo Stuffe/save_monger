@@ -13,12 +13,12 @@ const DIRECTIONS = [
 ]
 
 func get_seq_i64(input: seq[uint8], i: var int): seq[int] =
-  let len = get_int(input, i)
+  let len = get_i64(input, i)
   for j in 0..len - 1:
-    result.add(get_int(input, i))
+    result.add(get_i64(input, i))
 
 func get_string(input: seq[uint8], i: var int): string =
-  let len = get_int(input, i)
+  let len = get_i64(input, i)
   for j in 0..len - 1:
     result.add(chr(get_u8(input, i)))
 
@@ -33,24 +33,24 @@ proc get_component(input: seq[uint8], i: var int, solution = false): Component =
 
   let position = get_point(input, i)
   let rotation = get_u8(input, i)
-  let permanent_id = id(get_int(input, i))
+  let permanent_id = id(get_i64(input, i))
   let custom_string = get_string(input, i)
   var custom_id: int
 
   if kind == com_custom:
-    custom_id = get_int(input, i)
+    custom_id = get_i64(input, i)
 
   return Component(kind: kind, position: position, rotation: rotation, custom_string: custom_string, custom_id: custom_id, permanent_id: permanent_id)
 
 proc get_components(input: seq[uint8], i: var int, solution = false): seq[Component] =
-  let len = get_int(input, i)
+  let len = get_i64(input, i)
   for j in 0..len - 1:
     let comp = get_component(input, i, solution)
     if comp.kind == com_none: continue
     result.add(comp)
 
 func get_wire(input: seq[uint8], i: var int): Wire =
-  discard get_int(input, i) # used to be permanent_id
+  discard get_i64(input, i) # used to be permanent_id
   discard get_u8(input, i)
   result.color = get_u8(input, i)
   result.comment = get_string(input, i)
@@ -87,14 +87,14 @@ func get_wire(input: seq[uint8], i: var int): Wire =
     length_left = (segment and 0b0001_1111).int
 
 func get_wires(input: seq[uint8], i: var int): seq[Wire] =
-  let len = get_int(input, i)
+  let len = get_i64(input, i)
   for j in 0..len - 1:
     result.add(get_wire(input, i))
 
 proc parse*(bytes: seq[uint8], headers_only: bool, solution: bool, parse_result: var ParseResult) =
   var i = 1 # 0th byte is version
 
-  parse_result.custom_id = get_int(bytes, i)
+  parse_result.custom_id = get_i64(bytes, i)
   parse_result.gate = get_u32(bytes, i).int
   parse_result.delay = get_u32(bytes, i).int
   parse_result.menu_visible = get_bool(bytes, i)

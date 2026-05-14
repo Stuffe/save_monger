@@ -99,8 +99,8 @@ proc serialize_minimal_package*(
     for component_kind in used_components:
       let component = Component(kind: component_kind)
       let cost = get_cost(component)
-      arr.add_int(cost.gate)
-      arr.add_int(cost.delay)
+      arr.add_i64(cost.gate)
+      arr.add_i64(cost.delay)
   else:
     arr.add_u16(0)
 
@@ -123,7 +123,7 @@ proc serialize_minimal_package*(
           has_asm = true
           # TODO: Which level is the default?
           component.selected_programs.getOrDefault(level)
-        of ini_punch_card, ini_file, ini_hex_editor:
+        of ini_punch_card, ini_file, ini_hex_editor, ini_persistent:
           component.file_path
         else:
           continue

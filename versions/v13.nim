@@ -12,7 +12,7 @@ proc get_component(input: seq[uint8], i: var int, solution = false): Component =
 
   component.position = get_point(input, i)
   component.rotation = get_u8(input, i)
-  component.permanent_id = id(get_int(input, i))
+  component.permanent_id = id(get_i64(input, i))
   component.custom_string = get_string(input, i)
 
   let settings_len = get_u16(input, i)
@@ -32,10 +32,10 @@ proc get_component(input: seq[uint8], i: var int, solution = false): Component =
   var k = 0
   while k < watched_component_count:
     component.linked_components.add(LinkedComponent(
-      permanent_id: id(get_int(input, i)),
-      inner_id: id(get_int(input, i)),
+      permanent_id: id(get_i64(input, i)),
+      inner_id: id(get_i64(input, i)),
       name: get_string(input, i),
-      offset: get_int(input, i),
+      offset: get_i64(input, i),
       word_size: get_bits(input, i),
     ))
     k += 1
@@ -50,11 +50,11 @@ proc get_component(input: seq[uint8], i: var int, solution = false): Component =
 
   case component.kind:
     of com_custom:
-      component.custom_id = get_int(input, i)
+      component.custom_id = get_i64(input, i)
       var j = 0'u16
       let static_states_len = get_u16(input, i)
       while j < static_states_len:
-        let a = id(get_int(input, i))
+        let a = id(get_i64(input, i))
         let b = get_bits(input, i)
         component.custom_explicit_word_sizes[a] = b
         j += 1
@@ -73,7 +73,7 @@ proc get_component(input: seq[uint8], i: var int, solution = false): Component =
   return component
 
 proc get_components(input: seq[uint8], i: var int, solution = false): seq[Component] =
-  let len = get_int(input, i)
+  let len = get_i64(input, i)
   for j in 0..len - 1:
     let comp = get_component(input, i, solution)
     result.add(comp)
@@ -102,7 +102,7 @@ func get_wire(input: seq[uint8], i: var int): Wire =
   result.path = new_path(start, segments)
 
 func get_wires(input: seq[uint8], i: var int): seq[Wire] =
-  let len = get_int(input, i)
+  let len = get_i64(input, i)
 
   for j in 0..len - 1:
     result.add(get_wire(input, i))
@@ -111,10 +111,10 @@ proc parse*(compressed: seq[uint8], headers_only: bool, solution: bool, parse_re
   var bytes = uncompress(compressed[1..^1])
   var i = 0
 
-  parse_result.custom_id = get_int(bytes, i)
+  parse_result.custom_id = get_i64(bytes, i)
   parse_result.hub_id = get_u32(bytes, i)
-  parse_result.gate = get_int(bytes, i)
-  parse_result.delay = get_int(bytes, i)
+  parse_result.gate = get_i64(bytes, i)
+  parse_result.delay = get_i64(bytes, i)
   parse_result.menu_visible = get_bool(bytes, i)
   parse_result.clock_speed = get_u64(bytes, i)
   parse_result.dependencies = get_seq_int(bytes, i)

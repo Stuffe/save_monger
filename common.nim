@@ -1,4 +1,7 @@
-import tables, random
+import serialize
+export serialize
+
+import std/[tables, random]
 export tables
 
 const MAX_BITWIDTH* = 64'u8
@@ -143,8 +146,7 @@ const WATCHABLE_KINDS* = {
   com_cc_level_input, com_cc_level_output, com_probe_wire_word, com_probe_memory_word,
   com_probe_wire_bit, com_probe_memory_bit, com_counter, com_register_word,
   com_register_word_config, com_delay_line_bit, com_delay_line_word,
-  com_delay_line_word_asm, com_delay_line_word_config, com_register_bit,
-  com_ram,
+  com_delay_line_word_asm, com_delay_line_word_config, com_register_bit, com_ram,
 }
 const VISUAL_VALUE_KINDS* = {
   com_level_input_word, com_level_input_switched, com_level_output_word,
@@ -161,8 +163,8 @@ const LEVEL_INPUTS* = {
 }
 const LEVEL_OUTPUTS* = {
   com_level_output_1_pin, com_level_output_2_pin, com_level_output_3_pin,
-  com_level_output_4_pin, com_level_output_8_pin, com_level_output_word, com_level_output_switched,
-  com_level_output_counter,
+  com_level_output_4_pin, com_level_output_8_pin, com_level_output_word,
+  com_level_output_switched, com_level_output_counter,
 }
 const MIN_ONE_WATCHED_COMPONENT* =
   {com_probe_memory_bit, com_probe_memory_word, com_screen}
@@ -197,7 +199,7 @@ proc `-`*(a: Bits, b: int): Bits =
   return bits(a.amount - b)
 
 proc `-`*(a: Bits): Bits =
-  return bits(- a.amount)
+  return bits(-a.amount)
 
 proc `*`*(a: Bits, b: int): Bits =
   return bits(a.amount * b)
@@ -224,7 +226,7 @@ proc `-`*(a: Bytes, b: Bytes): Bytes =
   return bytes(a.amount - b.amount)
 
 proc `-`*(a: Bytes): Bytes =
-  return bytes(- a.amount)
+  return bytes(-a.amount)
 
 proc `*`*(a: Bytes, b: int): Bytes =
   return bytes(a.amount * b)
@@ -379,12 +381,14 @@ type InitialDataKind* = enum
   ini_punch_card
   ini_file
   ini_hex_editor
+  ini_persistent
 
 type BufferInitializeInfo* = object
   size*: Bytes
   is_little_endian*: bool
   init_data*: InitialDataKind
   generation*: int
+  reset_data*: seq[uint8]
 
 type Buffer* = object
   size*: Bytes
@@ -485,7 +489,7 @@ type WireID* = object
   wid*: int
 
 const INVALID_WIRE_ID* = WireID(wid: -1)
-const INVALID_PATH*    = Path(start: Point(x: int16.low))
+const INVALID_PATH* = Path(start: Point(x: int16.low))
 
 type Wire* = object
   comp_kind*: WireCompKind
@@ -777,166 +781,6 @@ proc is_tombstone*(path: Path): bool =
 proc is_tombstone*(wire: Wire): bool =
   return is_tombstone(wire.path)
 
-
-proc get_bool*(input: seq[uint8], i: var int): bool =
-  result = input[i] != 0
-  i += 1
-
-proc get_int*(input: seq[uint8], i: var int): int =
-  result =
-    input[i + 0].int shl 0 + input[i + 1].int shl 8 + input[i + 2].int shl 16 +
-    input[i + 3].int shl 24 + input[i + 4].int shl 32 + input[i + 5].int shl 40 +
-    input[i + 6].int shl 48 + input[i + 7].int shl 56
-  i += 8
-
-proc get_bits*(input: seq[uint8], i: var int): Bits =
-  result = bits(get_int(input, i))
-
-proc get_bytes*(input: seq[uint8], i: var int): Bytes =
-  result = bytes(get_int(input, i))
-
-proc get_u64*(input: seq[uint8], i: var int): uint64 =
-  result = cast[uint64](get_int(input, i))
-
-proc get_u32*(input: seq[uint8], i: var int): uint32 =
-  result =
-    input[i + 0].uint32 shl 0 + input[i + 1].uint32 shl 8 + input[i + 2].uint32 shl 16 +
-    input[i + 3].uint32 shl 24
-  i += 4
-
-proc get_u16*(input: seq[uint8], i: var int): uint16 =
-  result = input[i + 0].uint16 shl 0 + input[i + 1].uint16 shl 8
-  i += 2
-
-proc get_i16*(input: seq[uint8], i: var int): int16 =
-  result = cast[int16](get_u16(input, i))
-
-proc get_u8*(input: seq[uint8], i: var int): uint8 =
-  result = input[i]
-  i += 1
-
-proc get_i8*(input: seq[uint8], i: var int): int8 =
-  result = cast[int8](input[i])
-  i += 1
-
-proc get_sync_state*(input: seq[uint8], i: var int): SyncState =
-  result = SyncState(get_u8(input, i))
-
-proc get_init_data*(input: seq[uint8], i: var int): InitialDataKind =
-  result = InitialDataKind(get_u8(input, i))
-
-proc get_point*(input: seq[uint8], i: var int): Point =
-  return Point(x: get_i16(input, i), y: get_i16(input, i))
-
-proc get_seq_u8*(input: seq[uint8], i: var int, bits32 = false): seq[uint8] =
-  var len = 0
-  if bits32:
-    len = get_u32(input, i).int
-  else:
-    len = get_u16(input, i).int
-  var j = 0
-  while j < len:
-    result.add(get_u8(input, i))
-    j += 1
-
-proc get_seq_int*(input: seq[uint8], i: var int): seq[int] =
-  let len = get_u16(input, i)
-  var j = 0'u16
-  while j < len:
-    result.add(get_int(input, i))
-    j += 1
-
-proc get_string*(input: seq[uint8], i: var int): string =
-  let len = get_u16(input, i)
-  var j = 0'u16
-  while j < len:
-    result.add(chr(get_u8(input, i)))
-    j += 1
-
-proc add_bool*(arr: var seq[uint8], input: bool) =
-  arr.add(input.uint8)
-
-proc add_int*(arr: var seq[uint8], input: int) =
-  arr.add(cast[uint8]((input shr 0) and 0xff))
-  arr.add(cast[uint8]((input shr 8) and 0xff))
-  arr.add(cast[uint8]((input shr 16) and 0xff))
-  arr.add(cast[uint8]((input shr 24) and 0xff))
-  arr.add(cast[uint8]((input shr 32) and 0xff))
-  arr.add(cast[uint8]((input shr 40) and 0xff))
-  arr.add(cast[uint8]((input shr 48) and 0xff))
-  arr.add(cast[uint8]((input shr 56) and 0xff))
-
-proc add_u64*(arr: var seq[uint8], input: uint64) =
-  add_int(arr, cast[int](input))
-
-proc add_bits*(arr: var seq[uint8], input: Bits) =
-  add_int(arr, input.amount)
-
-proc add_bytes*(arr: var seq[uint8], input: Bytes) =
-  add_int(arr, input.amount)
-
-proc add_u32*(arr: var seq[uint8], input: uint32) =
-  arr.add(cast[uint8]((input shr 0) and 0xff))
-  arr.add(cast[uint8]((input shr 8) and 0xff))
-  arr.add(cast[uint8]((input shr 16) and 0xff))
-  arr.add(cast[uint8]((input shr 24) and 0xff))
-
-proc add_u16*(arr: var seq[uint8], input: uint16) =
-  arr.add(cast[uint8]((input shr 0) and 0xff))
-  arr.add(cast[uint8]((input shr 8) and 0xff))
-
-proc add_i16*(arr: var seq[uint8], input: int16) =
-  arr.add(cast[uint8]((input shr 0) and 0xff))
-  arr.add(cast[uint8]((input shr 8) and 0xff))
-
-proc add_u8*(arr: var seq[uint8], input: uint8) =
-  arr.add(input)
-
-proc add_i8*(arr: var seq[uint8], input: int8) =
-  arr.add(cast[uint8](input))
-
-proc add_component_kind*(arr: var seq[uint8], input: ComponentKind) =
-  arr.add_u16(ord(input).uint16)
-
-proc add_init_data*(arr: var seq[uint8], input: InitialDataKind) =
-  arr.add_u8(ord(input).uint8)
-
-proc add_sync_state*(arr: var seq[uint8], input: SyncState) =
-  arr.add(ord(input).uint8)
-
-proc add_point*(arr: var seq[uint8], input: Point) =
-  arr.add_i16(input.x)
-  arr.add_i16(input.y)
-
-proc add_seq_u8*(arr: var seq[uint8], input: seq[uint8], bits32 = false) =
-  if bits32:
-    arr.add_u32(input.len.uint32)
-  else:
-    arr.add_u16(input.len.uint16)
-  for i in input:
-    arr.add_u8(i)
-
-proc add_seq_int*(arr: var seq[uint8], input: seq[int]) =
-  arr.add_u16(input.len.uint16)
-  for i in input:
-    arr.add_int(i)
-
-proc add_seq_u64*(arr: var seq[uint8], input: seq[uint64]) =
-  arr.add_u16(input.len.uint16)
-  for i in input:
-    arr.add_u64(i)
-
-proc add_string*(arr: var seq[uint8], input: string) =
-  arr.add_u16(input.len.uint16)
-  for c in input:
-    arr.add_u8(ord(c).uint8)
-
-proc add_table_int_string*(arr: var seq[uint8], input: Table[int, string]) =
-  arr.add_int(input.len)
-  for key, value in input:
-    arr.add_int(key)
-    arr.add_string(value)
-
 proc pop_first*(path: var Path) =
   if path.segments.len == 0:
     return
@@ -1013,15 +857,6 @@ proc point_list_to_path*(path: seq[Point]): Path =
 
   return new_path(path[0], segments)
 
-proc add_path*(arr: var seq[uint8], path: Path) =
-  arr.add_point(path.start)
-
-  for segment in path.segments:
-    let segs = (segment.direction.uint16 shl 13) or segment.length
-    arr.add_u16(segs)
-
-  arr.add_u16(0'u16)
-
 proc length*(path: Path): int =
   for segment in path.segments:
     result += segment.length.int
@@ -1086,7 +921,7 @@ proc allocate_memory*(orig_amount: Bytes, can_be_z: bool): Allocation =
   if amount.amount == 3:
     amount.amount = 4
 
-  if amount.amount in [5,6,7]:
+  if amount.amount in [5, 6, 7]:
     amount.amount = 8
 
   var allocation = Allocation(
@@ -1121,4 +956,81 @@ proc get_id*(allocation: Allocation): string =
 proc teleport_path*(path: seq[Point]): Path =
   return teleport_path(path[0], path[1])
 
+## Serialize/Deserialize
 
+proc add_seq_int*(arr: var seq[uint8], input: seq[int]) =
+  arr.add_u16(input.len.uint16)
+  for i in input:
+    arr.add_i64(i)
+
+proc get_seq_int*(arr: openArray[uint8], i: var int): seq[int] =
+  let len = get_u16(arr, i)
+  var j = 0'u16
+  while j < len:
+    result.add(get_i64(arr, i))
+    j += 1
+
+proc add_bits*(arr: var seq[uint8], input: Bits) =
+  add_i64(arr, input.amount)
+
+proc get_bits*(arr: openArray[uint8], i: var int): Bits =
+  result = bits(get_i64(arr, i))
+
+proc add_bytes*(arr: var seq[uint8], input: Bytes) =
+  add_i64(arr, input.amount)
+
+proc get_bytes*(arr: openArray[uint8], i: var int): Bytes =
+  result = bytes(get_i64(arr, i))
+
+proc add_init_data*(arr: var seq[uint8], input: InitialDataKind) =
+  arr.add_u8(ord(input).uint8)
+
+proc get_init_data*(arr: openArray[uint8], i: var int): InitialDataKind =
+  result = InitialDataKind(get_u8(arr, i))
+
+proc add_point*(arr: var seq[uint8], input: Point) =
+  arr.add_i16(input.x)
+  arr.add_i16(input.y)
+
+proc get_point*(arr: openArray[uint8], i: var int): Point =
+  return Point(x: get_i16(arr, i), y: get_i16(arr, i))
+
+proc add_sync_state*(arr: var seq[uint8], input: SyncState) =
+  arr.add(ord(input).uint8)
+
+proc get_sync_state*(arr: openArray[uint8], i: var int): SyncState =
+  result = SyncState(get_u8(arr, i))
+
+proc add_component_kind*(arr: var seq[uint8], input: ComponentKind) =
+  arr.add_u16(ord(input).uint16)
+
+proc get_component_kind*(arr: openArray[uint8], i: var int): ComponentKind =
+  let idx = get_u16(arr, i).int
+  if idx <= ComponentKind.high.int:
+    result = ComponentKind(idx)
+
+proc add_path*(arr: var seq[uint8], path: Path) =
+  arr.add_point(path.start)
+
+  for segment in path.segments:
+    let segs = (segment.direction.uint16 shl 13) or segment.length
+    arr.add_u16(segs)
+
+  arr.add_u16(0'u16)
+
+proc get_path*(arr: openArray[uint8], i: var int): Path =
+  var point = get_point(arr, i)
+  var path = Path(start: point)
+  while true:
+    let segment_code = get_u16(arr, i)
+    let direction = cast[uint8](segment_code shr 13)
+    let length = segment_code and 0b00011111_11111111
+    if length == 0:
+      break
+
+    let segment = Segment(direction: direction, length: length)
+    point += DIRECTIONS[segment.direction] * segment.length
+    path.segments.add(segment)
+
+  path.finish = point
+  return path

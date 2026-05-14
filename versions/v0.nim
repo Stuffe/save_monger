@@ -7,19 +7,19 @@ func get_point(bytes: seq[uint8], i: var int): Point =
   )
 
 func get_seq_point(bytes: seq[uint8], i: var int): seq[Point] =
-  let len = get_int(bytes, i)
+  let len = get_i64(bytes, i)
   for j in 0..len - 1:
     result.add(get_point(bytes, i))
 
 func get_string(bytes: seq[uint8], i: var int): string =
-  let len = get_int(bytes, i)
+  let len = get_i64(bytes, i)
   for j in 0..len - 1:
     result.add(chr(get_u8(bytes, i)))
 
 func get_seq_i64(bytes: seq[uint8], i: var int): seq[int] =
-  let len = get_int(bytes, i)
+  let len = get_i64(bytes, i)
   for j in 0..len - 1:
-    result.add(get_int(bytes, i))
+    result.add(get_i64(bytes, i))
 
 proc get_component(bytes: seq[uint8], i: var int): Component =
   var kind = ComponentKind(get_u16(bytes, i).int)
@@ -29,12 +29,12 @@ proc get_component(bytes: seq[uint8], i: var int): Component =
   let custom_string = get_string(bytes, i)
   var custom_id: int
   if kind == com_custom:
-    custom_id = get_int(bytes, i)
+    custom_id = get_i64(bytes, i)
 
   return Component(kind: kind, position: position, rotation: rotation, custom_string: custom_string, custom_id: custom_id, permanent_id: permanent_id)
 
 proc get_components(bytes: seq[uint8], i: var int): seq[Component] =
-  let len = get_int(bytes, i)
+  let len = get_i64(bytes, i)
   for j in 0..len - 1:
     let comp = get_component(bytes, i)
     if comp.kind == com_none: continue
@@ -48,14 +48,14 @@ func get_wire(bytes: seq[uint8], i: var int): Wire =
   result.path = point_list_to_path(get_seq_point(bytes, i))
 
 func get_wires(bytes: seq[uint8], i: var int): seq[Wire] =
-  let len = get_int(bytes, i)
+  let len = get_i64(bytes, i)
   for j in 0..len - 1:
     result.add(get_wire(bytes, i))
 
 proc parse*(bytes: seq[uint8], headers_only: bool, solution: bool, parse_result: var ParseResult) =
   var i = 1 # 0th byte is version
 
-  parse_result.custom_id = get_int(bytes, i)
+  parse_result.custom_id = get_i64(bytes, i)
   parse_result.gate = get_u32(bytes, i).int
   parse_result.delay = get_u32(bytes, i).int
   parse_result.menu_visible = get_bool(bytes, i)

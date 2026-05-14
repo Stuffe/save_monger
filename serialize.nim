@@ -196,4 +196,4 @@ when isMainModule:
       arr.add_string(x)
       assert arr.get_string(i) == x
 
-  echo arr
+  debugecho arr

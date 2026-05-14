@@ -72,7 +72,7 @@ proc add_component(arr: var seq[uint8], component: Component) =
   arr.add_component_kind(component.kind)
   arr.add_point(component.position)
   arr.add_u8(component.rotation)
-  arr.add_int(get_value(component.permanent_id))
+  arr.add_i64(get_value(component.permanent_id))
   arr.add_string(component.custom_string)
   arr.add_u16(component.settings.len.uint16)
   for setting in component.settings:
@@ -84,27 +84,27 @@ proc add_component(arr: var seq[uint8], component: Component) =
 
   case component.cost_variant.kind
   of cvk_min_energy:
-    arr.add_int(-1)
-    arr.add_int(-1)
+    arr.add_i64(-1)
+    arr.add_i64(-1)
   of cvk_min_gate:
-    arr.add_int(-1)
-    arr.add_int(0)
+    arr.add_i64(-1)
+    arr.add_i64(0)
   of cvk_min_delay:
-    arr.add_int(0)
-    arr.add_int(-1)
+    arr.add_i64(0)
+    arr.add_i64(-1)
   of cvk_explicit:
-    arr.add_int(component.cost_variant.cost.gate)
-    arr.add_int(component.cost_variant.cost.delay)
+    arr.add_i64(component.cost_variant.cost.gate)
+    arr.add_i64(component.cost_variant.cost.delay)
 
   arr.add_bool(component.buffer_info.is_little_endian)
   arr.add_init_data(component.buffer_info.init_data)
 
   arr.add_u16(component.linked_components.len.uint16)
   for linked_component in component.linked_components:
-    arr.add_int(get_value(linked_component.permanent_id))
-    arr.add_int(get_value(linked_component.inner_id))
+    arr.add_i64(get_value(linked_component.permanent_id))
+    arr.add_i64(get_value(linked_component.inner_id))
     arr.add_string(linked_component.name)
-    arr.add_int(linked_component.offset)
+    arr.add_i64(linked_component.offset)
     arr.add_bits(linked_component.word_size)
 
   arr.add_u16(component.selected_programs.len.uint16)
@@ -114,10 +114,10 @@ proc add_component(arr: var seq[uint8], component: Component) =
 
   case component.kind
   of com_custom:
-    arr.add_int(component.custom_id)
+    arr.add_i64(component.custom_id)
     arr.add_u16(component.custom_explicit_word_sizes.len.uint16)
     for a, b in component.custom_explicit_word_sizes:
-      arr.add_int(get_value(a))
+      arr.add_i64(get_value(a))
       arr.add_bits(b)
   else:
     discard
@@ -163,10 +163,10 @@ proc state_to_binary*(
     new_wires.add(wire)
 
   var res: seq[uint8]
-  res.add_int(custom_id)
+  res.add_i64(custom_id)
   res.add_u32(hub_id)
-  res.add_int(gate)
-  res.add_int(delay)
+  res.add_i64(gate)
+  res.add_i64(delay)
   res.add_bool(menu_visible)
   res.add_u64(clock_speed)
   res.add_seq_int(dependencies)
@@ -181,11 +181,11 @@ proc state_to_binary*(
       for j in 0 ..< 16:
         res.add_u8((design[i][2 * j] and 0xF0) or (design[i][2 * j + 1] shr 4))
 
-  res.add_int(new_components.len)
+  res.add_i64(new_components.len)
   for component in new_components:
     res.add_component(component)
 
-  res.add_int(new_wires.len)
+  res.add_i64(new_wires.len)
   for wire in new_wires:
     res.add_wire(wire)
 
