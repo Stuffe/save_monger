@@ -388,7 +388,6 @@ type BufferInitializeInfo* = object
   is_little_endian*: bool
   init_data*: InitialDataKind
   generation*: int
-  reset_data*: seq[uint8]
 
 type Buffer* = object
   size*: Bytes
