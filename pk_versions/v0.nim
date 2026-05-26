@@ -5,9 +5,9 @@ import ../save_monger
 
 import ../../model_types
 
-import std/[os, sugar]
+import std/os
 
-const MAX_UNCOMPRESSED_SIZE = 10_000_000 # 10 MB
+const MAX_UNCOMPRESSED_SIZE = 100_000_000 # 10 MB
 
 proc get_file*(arr: seq[uint8], i: var int): seq[uint8] =
   let len = arr.get_u32(i).int
@@ -17,7 +17,6 @@ proc get_file*(arr: seq[uint8], i: var int): seq[uint8] =
 proc deserialize*(
     arr: seq[uint8],
     main_schematic_name: string,
-    is_score_needed: PkScoreNeeded,
     file_store_mode: PkFileStoreMode,
 ): PkDeserResult =
   result.data.version = 0
@@ -26,29 +25,11 @@ proc deserialize*(
     try:
       uncompress(arr[1 .. ^1], MAX_UNCOMPRESSED_SIZE)
     except SnappyError:
-      return PkDeserResult(kind: Error_Corrupt)
+      return PkDeserResult(kind: PkDeser_Error_Corrupt)
 
   var i = 0
   block BLK_METADATA:
     result.data.level = arr.get_string(i)
-
-  # Scores of common components are optionally provided for server's scoring to match client's
-  block BLK_SCORES:
-    let num_score = arr.get_u16(i).int
-    case is_score_needed
-    of YesScore:
-      result.data.scores = collect(newSeq()):
-        for _ in 0 ..< num_score:
-          let kind = ComponentKind(arr.get_u8(i))
-          let gate = arr.get_i64(i)
-          let delay = arr.get_i64(i)
-          (kind, gate, delay)
-    of NoScore:
-      var step = 0
-      step += 1 # kind
-      step += 8 # gate
-      step += 8 # delay
-      i += step * num_score
 
   proc get_file_and_store(parent_path: string, data: var PkDeserData) =
     let num_extra_file = arr.get_u16(i)

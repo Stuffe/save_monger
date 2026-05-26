@@ -5,7 +5,6 @@
 # The rest of the file is compressed with supersnappy
 # The uncompressed data is sectioned as follows:
 # - metadata
-# - (optional) common components' scores
 # - custom components' files (e.g. circuit.data, spec.isa, new_program.asm)
 # - supplementary files to main schematic
 # - main schematic
@@ -18,7 +17,6 @@ import libraries/supersnappy/supersnappy
 
 import ../board/schematics
 import ../board/custom_prototype_list
-import ../scores
 import ../model_types
 
 import std/[os, sequtils, sets, strutils]
@@ -28,25 +26,22 @@ const LATEST_VERSION = 0'u8
 proc deserialize_package*(
     arr: seq[uint8],
     main_schematic_name: string,
-    is_score_needed: PkScoreNeeded = NoScore,
     file_store_mode: PkFileStoreMode = File_NoStore,
 ): PkDeserResult =
   if arr.len < 1:
-    return PkDeserResult(kind: Error_Corrupt)
+    return PkDeserResult(kind: PkDeser_Error_Corrupt)
 
   try:
     let version = arr[0]
     case version
     of 0:
-      v0.deserialize(arr, main_schematic_name, is_score_needed, file_store_mode)
+      return v0.deserialize(arr, main_schematic_name, file_store_mode)
     else:
-      PkDeserResult(kind: Error_Corrupt)
+      return PkDeserResult(kind: PkDeser_Error_Corrupt)
   except IndexDefect:
-    PkDeserResult(kind: Error_Corrupt)
+    return PkDeserResult(kind: PkDeser_Error_Corrupt)
 
-proc serialize_minimal_package*(
-    path: string, level: string, WITH_SCORES: static[bool] = false
-): PkSerResult =
+proc serialize_minimal_package*(path: string, level: string): PkSerResult =
   ## The serialization assumes caller is not malicious
   var (custom_id, components, dependencies) = block BLK_PRELIM_CHECK:
     let path_schematic = path / "circuit.data"
@@ -58,14 +53,11 @@ proc serialize_minimal_package*(
       return PkSerResult(kind: PkSer_Error_MainNotFound)
 
     var dependencies: seq[int]
-    for component in meta.components:
+    for component in meta.schematic.components:
       if component.kind == com_custom and component.custom_id notin dependencies:
         dependencies.add(component.custom_id)
 
-    (meta.custom_id, meta.components, dependencies)
-
-  when WITH_SCORES:
-    var used_components: set[ComponentKind]
+    (meta.custom_id, meta.schematic.components, dependencies)
 
   var arr: seq[uint8]
   block BLK_METADATA:
@@ -82,27 +74,11 @@ proc serialize_minimal_package*(
       visited.add(custom_id)
 
       let prototype = get_custom_prototype(custom_id)
-      for component in prototype.components:
+      for component in prototype.schematic.components:
         if component.kind == com_custom and component.custom_id notin visited:
           dependencies.add(component.custom_id)
 
-        when WITH_SCORES:
-          used_components.incl(component.kind)
-
     visited
-
-  # Scores of common components are optionally provided for server's scoring to match client's
-  when WITH_SCORES:
-    used_components = used_components - UNUSED_COMPONENTS
-    used_components.excl(com_none)
-    arr.add_u16(used_components.len.uint16)
-    for component_kind in used_components:
-      let component = Component(kind: component_kind)
-      let cost = get_cost(component)
-      arr.add_i64(cost.gate)
-      arr.add_i64(cost.delay)
-  else:
-    arr.add_u16(0)
 
   # All schematics are serialized in reverse topological order
   # The schematic at the front is the root schematic & is treated differently
@@ -118,13 +94,12 @@ proc serialize_minimal_package*(
         continue
 
       let path =
-        case initial_data(component):
+        case initial_data(component)
         of ini_assembler:
           has_asm = true
-          # TODO: Which level is the default?
-          component.selected_programs.getOrDefault(level)
+          component.selected_programs.getOrDefault(level).value
         of ini_punch_card, ini_file, ini_hex_editor, ini_persistent:
-          component.file_path
+          $component.permanent_id & "." & TC_BIN_EXTENSION
         else:
           continue
       if serialized_files.contains(parent_path / path):
@@ -135,13 +110,13 @@ proc serialize_minimal_package*(
     if has_asm:
       result.add("spec.isa")
 
-  let froundry_path = global_save_base_path / "schematics/foundry"
+  let foundry_path = global_save_base_path / "schematics/foundry"
   arr.add_u16(schematics_rev_topo_sorted.len.uint16 - 1)
   while schematics_rev_topo_sorted.len > 1:
     let custom_id = schematics_rev_topo_sorted.pop()
     let prototype = get_custom_prototype(custom_id)
-    let parent_path = froundry_path / prototype.path
-    let files = find_files(parent_path, prototype.components)
+    let parent_path = foundry_path / prototype.path
+    let files = find_files(parent_path, prototype.schematic.components)
 
     arr.add_string(prototype.path)
     arr.add_u16(files.len.uint16)
@@ -176,7 +151,7 @@ proc serialize_maximal_package*(path: string, level: string): PkSerResult =
       return PkSerResult(kind: PkSer_Error_MainNotFound)
 
     var dependencies: OrderedSet[int]
-    for component in meta.components:
+    for component in meta.schematic.components:
       if component.kind == com_custom:
         dependencies.incl(component.custom_id)
 
@@ -187,7 +162,7 @@ proc serialize_maximal_package*(path: string, level: string): PkSerResult =
       let (broken, meta) = get_schematic_safe(path_schematic, true)
       if broken:
         continue
-      for component in meta.components:
+      for component in meta.schematic.components:
         if component.kind == com_custom:
           dependencies.incl(component.custom_id)
 
@@ -208,15 +183,11 @@ proc serialize_maximal_package*(path: string, level: string): PkSerResult =
       visited.incl(custom_id)
 
       let prototype = get_custom_prototype(custom_id)
-      for component in prototype.components:
+      for component in prototype.schematic.components:
         if component.kind == com_custom and component.custom_id notin visited:
           dependencies.add(component.custom_id)
 
     visited.toSeq()
-
-  # Scores only provided for server's scoring to match client's
-  # And server only needs the minimal package
-  arr.add_u16(0)
 
   # All schematics are serialized in reverse topological order
   # The schematic at the front is the root schematic & is treated differently
@@ -247,12 +218,12 @@ proc serialize_maximal_package*(path: string, level: string): PkSerResult =
           discard
     serialized_folders.insert(parent_path)
 
-  let froundry_path = global_save_base_path / "schematics/foundry"
+  let foundry_path = global_save_base_path / "schematics/foundry"
   arr.add_u16(schematics_rev_topo_sorted.len.uint16 - 1)
   while schematics_rev_topo_sorted.len > 1:
     let custom_id = schematics_rev_topo_sorted.pop()
     let prototype = get_custom_prototype(custom_id)
-    let parent_path = froundry_path / prototype.path
+    let parent_path = foundry_path / prototype.path
     let files = find_files(parent_path)
 
     arr.add_string(prototype.path)

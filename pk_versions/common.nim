@@ -23,19 +23,18 @@ type PkFileStoreMode* {.pure.} = enum
   File_OnOverlap_Overwrite
 
 type PkDeserResult_Kind* {.pure.} = enum
-  Success
-  Error_Corrupt
+  PkDeser_Success
+  PkDeser_Error_Corrupt
 
 type PkDeserData* = object
   version*: uint8
   level*: string
-  scores*: seq[tuple[kind: ComponentKind, gate: int, delay: int]]
   files_pending_stores*: seq[tuple[path: string, data: seq[uint8]]]
   files_stored*: seq[string]
 
 type PkDeserResult* = object
   case kind*: PkDeserResult_Kind
-  of Success:
+  of PkDeser_Success:
     data*: PkDeserData
   else:
     discard
