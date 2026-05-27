@@ -26,6 +26,8 @@ const LATEST_VERSION = 0'u8
 proc deserialize_package*(
     arr: seq[uint8],
     main_schematic_name: string,
+    level_overwrite: string = "",
+    foundry_overwrite: string = "",
     file_store_mode: PkFileStoreMode = File_NoStore,
 ): PkDeserResult =
   if arr.len < 1:
@@ -35,7 +37,7 @@ proc deserialize_package*(
     let version = arr[0]
     case version
     of 0:
-      return v0.deserialize(arr, main_schematic_name, file_store_mode)
+      return v0.deserialize(arr, main_schematic_name, level_overwrite, foundry_overwrite, file_store_mode)
     else:
       return PkDeserResult(kind: PkDeser_Error_Corrupt)
   except IndexDefect:
@@ -48,7 +50,7 @@ proc serialize_minimal_package*(path: string, level: string): PkSerResult =
     if not fileExists(path_schematic):
       return PkSerResult(kind: PkSer_Error_MainNotFound)
 
-    let (broken, meta) = get_schematic_safe(path_schematic, true)
+    let (broken, meta) = get_schematic_safe(path_schematic)
     if broken:
       return PkSerResult(kind: PkSer_Error_MainNotFound)
 
@@ -146,7 +148,7 @@ proc serialize_maximal_package*(path: string, level: string): PkSerResult =
     if not fileExists(path_schematic):
       return PkSerResult(kind: PkSer_Error_MainNotFound)
 
-    let (broken, meta) = get_schematic_safe(path_schematic, true)
+    let (broken, meta) = get_schematic_safe(path_schematic)
     if broken:
       return PkSerResult(kind: PkSer_Error_MainNotFound)
 
@@ -159,7 +161,7 @@ proc serialize_maximal_package*(path: string, level: string): PkSerResult =
       let path_schematic = path / "circuit.data"
       if not fileExists(path_schematic):
         continue
-      let (broken, meta) = get_schematic_safe(path_schematic, true)
+      let (broken, meta) = get_schematic_safe(path_schematic)
       if broken:
         continue
       for component in meta.schematic.components:
@@ -203,6 +205,7 @@ proc serialize_maximal_package*(path: string, level: string): PkSerResult =
     while dirs.len > 0:
       let dir_path = dirs.pop()
       for (kind, path) in walkDir(dir_path):
+        let path = path.replace("\\", "/")
         case kind
         of pcFile:
           let path = path[parent_path.len + 1 ..^ 1]
@@ -223,10 +226,12 @@ proc serialize_maximal_package*(path: string, level: string): PkSerResult =
   while schematics_rev_topo_sorted.len > 1:
     let custom_id = schematics_rev_topo_sorted.pop()
     let prototype = get_custom_prototype(custom_id)
-    let parent_path = foundry_path / prototype.path
+    let path =
+      prototype.path.strip(chars = {'/'}, leading = false)[foundry_path.len + 1 .. ^1]
+    let parent_path = foundry_path / path
     let files = find_files(parent_path)
 
-    arr.add_string(prototype.path)
+    arr.add_string(path)
     arr.add_u16(files.len.uint16)
     for path in files:
       arr.add_string(path)
