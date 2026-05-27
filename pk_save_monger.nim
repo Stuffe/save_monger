@@ -37,7 +37,9 @@ proc deserialize_package*(
     let version = arr[0]
     case version
     of 0:
-      return v0.deserialize(arr, main_schematic_name, level_overwrite, foundry_overwrite, file_store_mode)
+      return v0.deserialize(
+        arr, main_schematic_name, level_overwrite, foundry_overwrite, file_store_mode
+      )
     else:
       return PkDeserResult(kind: PkDeser_Error_Corrupt)
   except IndexDefect:
@@ -182,9 +184,13 @@ proc serialize_maximal_package*(path: string, level: string): PkSerResult =
       let custom_id = dependencies.pop()
       if custom_id in visited:
         continue
-      visited.incl(custom_id)
 
       let prototype = get_custom_prototype(custom_id)
+      if prototype.path == "":
+        continue
+
+      visited.incl(custom_id)
+
       for component in prototype.schematic.components:
         if component.kind == com_custom and component.custom_id notin visited:
           dependencies.add(component.custom_id)
