@@ -5,7 +5,7 @@ import ../save_monger
 
 import ../../model_types
 
-import std/[os, strutils]
+import std/[os, random, strutils]
 
 const MAX_UNCOMPRESSED_SIZE = 100_000_000 # 100 MB
 
@@ -35,12 +35,35 @@ proc deserialize*(
     if level_overwrite != "":
       result.data.level = level_overwrite
 
+  var custom_id_remap: Table[int, int]
   proc get_file_and_store(parent_path: string, data: var PkDeserData) =
     let num_extra_file = arr.get_u16(i)
     for _ in 0.uint16 .. num_extra_file:
       let name = arr.get_string(i)
       let path = parent_path / name
-      let binary = arr.get_file(i)
+      var binary = arr.get_file(i)
+
+      if name.startsWith("circuit") and name.endsWith(".data"):
+        try:
+          var meta = parse_state(binary)
+          if meta.custom_id != 0:
+            if meta.custom_id notin custom_id_remap:
+              custom_id_remap[meta.custom_id] = rand(int.high)
+            meta.custom_id = custom_id_remap[meta.custom_id]
+
+          for component in meta.schematic.components.mitems:
+            if component.kind == com_custom:
+              if component.custom_id notin custom_id_remap:
+                custom_id_remap[component.custom_id] = rand(int.high)
+              component.custom_id = custom_id_remap[component.custom_id]
+
+          binary = state_to_binary(
+            meta.custom_id, meta.schematic, meta.design, meta.gate, meta.delay,
+            meta.menu_visible, meta.clock_speed, meta.description, meta.hub_id,
+            meta.hub_description,
+          )
+        except:
+          discard
 
       case file_store_mode
       of File_NoStore:
