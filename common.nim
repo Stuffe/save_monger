@@ -244,7 +244,7 @@ proc `$`*(input: Bytes): string =
   return $input.amount
 
 const MEMORY_COMPONENTS* = {com_ram: bytes(256)}.toTable
-const SETTING_IMMUTABLE_DATA* = 2
+const SETTING_MUTABLE_DATA* = 2
 const Z_STATE_BYTES* = bytes(1)
 
 const COMPONENT_DEFAULT_SETTING* = {
