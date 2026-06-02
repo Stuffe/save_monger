@@ -441,6 +441,7 @@ type Component* = object
   linked_components*: seq[LinkedComponent]
   linked_indexes*: seq[LinkedIndex]
   is_overlap_ghost*: bool
+  is_out_of_budget_ghost*: bool
 
   calculated_gate*: int
   calculated_delay*: int
@@ -512,6 +513,9 @@ type Schematic* = object
   next_global_input*: uint16
   level_size*: int16
   breakpoint_component_ids*: seq[int]
+
+proc is_ghost*(component: Component): bool =
+  return component.is_overlap_ghost or component.is_out_of_budget_ghost
 
 iterator wires*(schematic: Schematic): (WireID, Wire) =
   for index, wire in schematic.wires:
