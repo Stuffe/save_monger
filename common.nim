@@ -464,6 +464,8 @@ type Component* = object
   is_immutable*: bool
   cost_variant*: CostVariant
 
+  inlined_ram_custom_path*: string
+
   # Render cache
   draw_index*: uint32
   draw_index_static_value*: uint32
