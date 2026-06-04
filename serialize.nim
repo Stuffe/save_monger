@@ -195,3 +195,5 @@ when isMainModule:
     for x in ["", "hello", "hello world", "\b\0\n\r\t\f\v"]:
       arr.add_string(x)
       assert arr.get_string(i) == x
+
+  echo arr
