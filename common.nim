@@ -781,7 +781,7 @@ proc has_segments*(wire: Wire): bool =
   return has_segments(wire.path)
 
 proc is_tombstone*(path: Path): bool =
-  return path.start == path.finish
+  return path.segments.len == 0
 
 proc is_tombstone*(wire: Wire): bool =
   return is_tombstone(wire.path)
@@ -833,7 +833,7 @@ proc empty_path*(start: Point): Path =
   return Path(start: start, finish: start)
 
 proc teleport_path*(start: Point, finish: Point): Path =
-  return Path(start: start, finish: finish)
+  return Path(start: start, finish: finish, segments: @[Segment(length: 1)])
 
 proc point_list_to_path*(path: seq[Point]): Path =
   var offset = 0'u16
