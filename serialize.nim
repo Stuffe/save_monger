@@ -196,4 +196,6 @@ when isMainModule:
       arr.add_string(x)
       assert arr.get_string(i) == x
 
-  echo arr
+  func log*(arr: seq[uint8]) =
+    debugecho arr
+  log(arr)

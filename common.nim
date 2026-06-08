@@ -441,7 +441,7 @@ type Component* = object
   linked_components*: seq[LinkedComponent]
   linked_indexes*: seq[LinkedIndex]
   is_overlap_ghost*: bool
-  out_of_budget_ghost_kind*: bool
+  out_of_budget_ghost_kind*: ComponentKind # Could be something inside a custom component
 
   calculated_gate*: int
   calculated_delay*: int
@@ -517,7 +517,7 @@ type Schematic* = object
   breakpoint_component_ids*: seq[int]
 
 proc is_ghost*(component: Component): bool =
-  return component.is_overlap_ghost or component.out_of_budget_ghost_kind
+  return component.is_overlap_ghost or component.out_of_budget_ghost_kind != com_none
 
 iterator wires*(schematic: Schematic): (WireID, Wire) =
   for index, wire in schematic.wires:
