@@ -914,6 +914,9 @@ var private_next_memory_index = 0
 proc reset_allocation_index*() =
   private_next_memory_index = 256
 
+proc is_immutable_data*(component: Component): bool =
+  component.is_immutable and component.kind in ASSEMBLER_COMPONENTS and component.settings[SETTING_MUTABLE_DATA] == 0
+
 proc allocate_memory*(orig_amount: Bytes, can_be_z: bool): Allocation =
   #let can_be_z = true # Let all allocs be z since the front end always reads z
 
