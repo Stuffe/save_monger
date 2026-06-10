@@ -253,7 +253,7 @@ const COMPONENT_DEFAULT_SETTING* = {
   com_cc_output: @[0'u64],
   com_level_gate: @[0'u64],
   com_segment_display: @[0'u64],
-  com_keyboard: @[1'u64],
+  com_keyboard: @[0'u64],
   com_static_indexer: @[0'u64],
   com_ram: @[0'u64, 0'u64, 0'u64],
 }.toTable
