@@ -83,9 +83,6 @@ proc add_component(arr: var seq[uint8], component: Component) =
   arr.add_bool(component.is_immutable)
 
   case component.cost_variant.kind
-  of cvk_min_energy:
-    arr.add_i64(-1)
-    arr.add_i64(-1)
   of cvk_min_gate:
     arr.add_i64(-1)
     arr.add_i64(0)

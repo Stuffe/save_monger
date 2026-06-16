@@ -27,9 +27,7 @@ proc get_component(input: seq[uint8], i: var int, solution = false): Component =
   
   let gate_variant = get_i64(input, i)
   let delay_variant = get_i64(input, i)
-  if gate_variant < 0 and delay_variant < 0:
-    component.cost_variant = CostVariant(kind: cvk_min_energy)
-  elif gate_variant < 0:
+  if gate_variant < 0:
     component.cost_variant = CostVariant(kind: cvk_min_gate)
   elif delay_variant < 0:
     component.cost_variant = CostVariant(kind: cvk_min_delay)

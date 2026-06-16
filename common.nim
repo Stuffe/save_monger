@@ -409,7 +409,6 @@ type Score* = object
 
 type CostVariantKind* = enum
   cvk_min_gate
-  cvk_min_energy
   cvk_min_delay
   cvk_explicit
 
