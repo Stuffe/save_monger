@@ -32,7 +32,11 @@ proc get_component(input: seq[uint8], i: var int, solution = false): Component =
     let custom_nudge = get_point(input, i)
     position = position + custom_nudge + CUSTOM_OFFSET
 
-  return Component(kind: kind, position: position, rotation: rotation, custom_string: custom_string, custom_id: custom_id, permanent_id: permanent_id)
+  result = Component(kind: kind, position: position, rotation: rotation, custom_id: custom_id, permanent_id: permanent_id)
+  if kind in OLD_CUSTOM_STRING_COMPONENTS:
+    result.custom_string = custom_string
+  else:
+    result.user_label = custom_string
 
 proc get_components(input: seq[uint8], i: var int, solution = false): seq[Component] =
   let len = get_i64(input, i)

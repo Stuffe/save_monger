@@ -13,7 +13,10 @@ proc get_component(input: seq[uint8], i: var int, solution = false): Component =
   component.position = get_point(input, i)
   component.rotation = get_u8(input, i)
   component.permanent_id = id(get_i64(input, i))
-  component.custom_string = get_string(input, i)
+  if kind in OLD_CUSTOM_STRING_COMPONENTS:
+    component.custom_string = get_string(input, i)
+  else:
+    component.user_label = get_string(input, i)
 
   let settings_len = get_u16(input, i)
   var j = 0

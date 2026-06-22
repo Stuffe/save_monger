@@ -1,18 +1,6 @@
 import ../libraries/supersnappy/supersnappy
 import ../common
 
-const TELEPORT_WIRE = 0b0010_0000'u8
-const DIRECTIONS = [
-  Point(x: 1, y: 0),
-  Point(x: 1, y: 1),
-  Point(x: 0, y: 1),
-  Point(x: -1, y: 1),
-  Point(x: -1, y: 0),
-  Point(x: -1, y: -1),
-  Point(x: 0, y: -1),
-  Point(x: 1, y: -1),
-]
-
 proc get_component(input: seq[uint8], i: var int, solution = false): Component =
   let idx = get_u16(input, i).int
   var kind = com_none
@@ -25,10 +13,8 @@ proc get_component(input: seq[uint8], i: var int, solution = false): Component =
   component.position = get_point(input, i)
   component.rotation = get_u8(input, i)
   component.permanent_id = id(get_i64(input, i))
-  if kind in OLD_CUSTOM_STRING_COMPONENTS:
-    component.custom_string = get_string(input, i)
-  else:
-    component.user_label = get_string(input, i)
+  component.user_label = get_string(input, i)
+  component.custom_string = get_string(input, i)
 
   let settings_len = get_u16(input, i)
   var j = 0
@@ -39,7 +25,16 @@ proc get_component(input: seq[uint8], i: var int, solution = false): Component =
   component.ui_order = get_i16(input, i)
   component.word_size = get_bits(input, i)
   component.is_immutable = get_bool(input, i)
-
+  
+  let gate_variant = get_i64(input, i)
+  let delay_variant = get_i64(input, i)
+  if gate_variant < 0:
+    component.cost_variant = CostVariant(kind: cvk_min_gate)
+  elif delay_variant < 0:
+    component.cost_variant = CostVariant(kind: cvk_min_delay)
+  else:
+    component.cost_variant = CostVariant(kind: cvk_explicit, cost: Cost(gate: gate_variant, delay: delay_variant))
+  
   buffer_info.is_little_endian = get_bool(input, i)
   buffer_info.init_data = get_init_data(input, i)
 
@@ -97,36 +92,24 @@ func get_wire(input: seq[uint8], i: var int): Wire =
   result.color = get_u8(input, i)
   result.comment = get_string(input, i)
   
-  #[
-    Wire paths encoding rules:
-    1. The wire starts with a point: (x: int16, y: int16). 
-    2. After this follow 1 or more segments (3 bit direction, 5 bit length)
-    3. We end once a 0 length segment is encountered (0 byte)
-  ]#
+  let start = get_point(input, i)
 
-  var path: seq[Point]
-  defer:   
-    result.path = point_list_to_path(path)
+  var segments: seq[Segment]
 
-  path.add(get_point(input, i))
+  while true:
+    let segment = get_u16(input, i)
+    let direction = (segment shr 13).uint8
+    let length    = segment and 0b00011111_11111111
 
-  var segment = get_u8(input, i)
+    if length == 0:
+      break
 
-  # This is a special case to support players who want to generate disconnected wires
-  if segment == TELEPORT_WIRE:
-    path.add(get_point(input, i))
-    return
+    segments.add(new_segment(
+      length.uint16,
+      direction,
+    ))
 
-  var length_left = (segment and 0b0001_1111).int
-  while length_left != 0:
-    let direction = DIRECTIONS[segment shr 5]
-
-    while length_left > 0:
-      path.add(path[^1] + direction)
-      length_left -= 1
-
-    segment = get_u8(input, i)
-    length_left = (segment and 0b0001_1111).int
+  result.path = new_path(start, segments)
 
 func get_wires(input: seq[uint8], i: var int): seq[Wire] =
   let len = get_i64(input, i)
@@ -152,5 +135,12 @@ proc parse*(compressed: seq[uint8], headers_only: bool, solution: bool, parse_re
   parse_result.hub_description = get_string(bytes, i)
 
   if not headers_only:
+    if parse_result.custom_id != 0:
+      for x in 0 ..< 32:
+        for y in 0 ..< 16:
+          let design_value = get_u8(bytes, i)
+          parse_result.design[x][2 * y] = design_value and 0xF0
+          parse_result.design[x][2 * y + 1] = design_value shl 4
+
     parse_result.schematic.components = get_components(bytes, i, solution)
     add_wires(parse_result.schematic, get_wires(bytes, i))

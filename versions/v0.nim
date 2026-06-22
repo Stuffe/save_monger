@@ -31,7 +31,11 @@ proc get_component(bytes: seq[uint8], i: var int): Component =
   if kind == com_custom:
     custom_id = get_i64(bytes, i)
 
-  return Component(kind: kind, position: position, rotation: rotation, custom_string: custom_string, custom_id: custom_id, permanent_id: permanent_id)
+  result = Component(kind: kind, position: position, rotation: rotation, custom_id: custom_id, permanent_id: permanent_id)
+  if kind in OLD_CUSTOM_STRING_COMPONENTS:
+    result.custom_string = custom_string
+  else:
+    result.user_label = custom_string
 
 proc get_components(bytes: seq[uint8], i: var int): seq[Component] =
   let len = get_i64(bytes, i)

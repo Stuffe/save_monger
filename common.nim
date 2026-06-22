@@ -246,6 +246,8 @@ proc `$`*(input: Bytes): string =
 const MEMORY_COMPONENTS* = {com_ram: bytes(256)}.toTable
 const SETTING_MUTABLE_DATA* = 2
 const Z_STATE_BYTES* = bytes(1)
+const OLD_CUSTOM_STRING_COMPONENTS* =
+  {com_halt, com_static_eval, com_static_indexer, com_constant}
 
 const COMPONENT_DEFAULT_SETTING* = {
   com_constant: @[0'u64],
@@ -434,6 +436,7 @@ type Component* = object
   global_input_start*: uint16
   settings*: seq[uint64]
   ui_order*: int16
+  user_label*: string
   custom_string*: string
   word_size*: Bits
   computed_word_size*: Bits
@@ -914,7 +917,8 @@ proc reset_allocation_index*() =
   private_next_memory_index = 256
 
 proc is_immutable_data*(component: Component): bool =
-  component.is_immutable and component.kind in ASSEMBLER_COMPONENTS and component.settings[SETTING_MUTABLE_DATA] == 0
+  component.is_immutable and component.kind in ASSEMBLER_COMPONENTS and
+    component.settings[SETTING_MUTABLE_DATA] == 0
 
 proc allocate_memory*(orig_amount: Bytes, can_be_z: bool): Allocation =
   #let can_be_z = true # Let all allocs be z since the front end always reads z
@@ -931,11 +935,8 @@ proc allocate_memory*(orig_amount: Bytes, can_be_z: bool): Allocation =
   if amount.amount in [5, 6, 7]:
     amount.amount = 8
 
-  var allocation = Allocation(
-    index: private_next_memory_index,
-    size: amount,
-    can_be_z: can_be_z,
-  )
+  var allocation =
+    Allocation(index: private_next_memory_index, size: amount, can_be_z: can_be_z)
   private_next_memory_index += amount.amount
   if can_be_z:
     allocation.index += 1

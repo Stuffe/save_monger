@@ -23,7 +23,10 @@ proc get_component(input: seq[uint8], i: var int, solution = false): Component =
   result.position = get_point(input, i)
   result.rotation = get_u8(input, i)
   result.permanent_id = id(get_i64(input, i))
-  result.custom_string = get_string(input, i)
+  if kind in OLD_CUSTOM_STRING_COMPONENTS:
+    result.custom_string = get_string(input, i)
+  else:
+    result.user_label = get_string(input, i)
   let settings_len = get_u16(input, i)
   var j = 0
   while j < settings_len.int:

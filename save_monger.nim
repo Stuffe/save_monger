@@ -1,9 +1,9 @@
 import os, random, sets
 import libraries/supersnappy/supersnappy
-import common, versions/[v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14]
+import common, versions/[v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15]
 export common
 
-const LATES_VERSION* = 14'u8
+const LATES_VERSION* = 15'u8
 
 proc file_get_bytes*(orig_file_name: string, alternative_name = ""): seq[uint8] =
   var file_name = orig_file_name
@@ -59,6 +59,7 @@ proc parse_state*(
         of 12: v12.parse(input, headers_only, solution, result)
         of 13: v13.parse(input, headers_only, solution, result)
         of 14: v14.parse(input, headers_only, solution, result)
+        of 15: v15.parse(input, headers_only, solution, result)
         else: discard
     except CatchableError, IndexDefect, RangeDefect: discard
 
@@ -73,6 +74,7 @@ proc add_component(arr: var seq[uint8], component: Component) =
   arr.add_point(component.position)
   arr.add_u8(component.rotation)
   arr.add_i64(get_value(component.permanent_id))
+  arr.add_string(component.user_label)
   arr.add_string(component.custom_string)
   arr.add_u16(component.settings.len.uint16)
   for setting in component.settings:
