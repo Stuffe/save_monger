@@ -478,7 +478,7 @@ type Component* = object
   draw_index_screen*: uint32
   draw_index_comment*: uint32
   draw_index_button*: uint32
-  draw_mode_button*: uint8
+  draw_mode_button*: uint32
 
 type Segment* = object
   direction: uint8
