@@ -5,6 +5,19 @@ export common
 
 const LATES_VERSION* = 15'u8
 
+proc open_when_ready*(file_name: string, mode: FileMode): File =
+  # Windows file system is annoying
+
+  var tries = 0
+  var file: File
+  while not file.open(file_name, mode):
+    sleep(1)
+    tries += 1
+
+    assert tries < 5000, "File locked: " & file_name
+
+  return file
+
 proc file_get_bytes*(orig_file_name: string, alternative_name = ""): seq[uint8] =
   var file_name = orig_file_name
   if not fileExists(file_name):
@@ -13,11 +26,11 @@ proc file_get_bytes*(orig_file_name: string, alternative_name = ""): seq[uint8] 
     else:
       return
 
-  var file: File
 
   # Since the game loads files from 2 different threads, we can't assume the file isn't locked (on Windows)
-  while not file.open(file_name):
-    sleep(1)
+
+  var file = open_when_ready(file_name, fmRead)
+
   defer:
     file.close()
 
@@ -32,7 +45,7 @@ proc file_get_bytes*(orig_file_name: string, alternative_name = ""): seq[uint8] 
 proc parse_state*(
     input: seq[uint8], headers_only = false, solution = false
 ): ParseResult =
-  # Versions modify the result object instead of returning a new one. 
+  # Versions modify the result object instead of returning a new one.
   # This is so that defaults can be set here for values old versions may not contain
 
   result.gate = 99999
