@@ -1,7 +1,7 @@
 import serialize
 export serialize
 
-import std/[tables, random]
+import std/[random, strutils, tables]
 export tables
 
 const MAX_BITWIDTH* = 64'u8
@@ -517,6 +517,15 @@ type Schematic* = object
   next_global_input*: uint16
   level_size*: int16
   breakpoint_component_ids*: seq[int]
+
+proc name_in_sim*(component: Component): string =
+  if component.user_label == "":
+    return
+
+  result = component.user_label.multiReplace((AllChars - IdentChars, '_'))
+  if result[0] notin IdentStartChars:
+    result = '_' & result
+  result = toLower(result)
 
 proc is_ghost*(component: Component): bool =
   return component.is_overlap_ghost or component.out_of_budget_ghost_kind != com_none
