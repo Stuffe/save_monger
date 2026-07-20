@@ -48,7 +48,7 @@ type ComponentKind* = enum
   com_counter = 38
   com_register_word = 39
   com_level_output_8_pin = 40
-  com_deleted_5 = 41
+  com_level_delay_gate = 41
   com_mux = 42
   com_decoder_1 = 43
   com_decoder_2 = 44
@@ -134,7 +134,7 @@ type ComponentKind* = enum
   com_deleted_15 = 124
 
 const UNUSED_COMPONENTS* = {
-  com_none, com_deleted_1, com_deleted_2, com_deleted_3, com_deleted_4, com_deleted_5,
+  com_none, com_deleted_1, com_deleted_2, com_deleted_3, com_deleted_4,
   com_deleted_6, com_deleted_7, com_deleted_8, com_deleted_9, com_deleted_10,
   com_deleted_11, com_deleted_12, com_deleted_13, com_deleted_14, com_deleted_15,
   com_deleted_16, com_deleted_17, com_deleted_18, com_deleted_19, com_deleted_20,
@@ -254,6 +254,7 @@ const COMPONENT_DEFAULT_SETTING* = {
   com_cc_input: @[2'u64],
   com_cc_output: @[0'u64],
   com_level_gate: @[0'u64],
+  com_level_delay_gate: @[0'u64, 0'u64],
   com_segment_display: @[0'u64],
   com_keyboard: @[0'u64],
   com_static_indexer: @[0'u64],
