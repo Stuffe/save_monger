@@ -508,6 +508,7 @@ type Wire* = object
   circular_dependency*: bool
   critical_path*: bool
   reverse_flow*: bool
+  custom_parent_id*: PermanentID
 
 type Schematic* = object
   components*: seq[Component]
