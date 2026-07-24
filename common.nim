@@ -58,7 +58,7 @@ type ComponentKind* = enum
   com_maker_word_2 = 48
   com_clz = 49
   com_register_word_config = 50
-  com_delay_line_word_asm = 51
+  com_probe_wire_asm = 51
   com_deleted_6 = 52
   com_deleted_4 = 53
   com_load_port = 54
@@ -146,7 +146,7 @@ const WATCHABLE_KINDS* = {
   com_cc_level_input, com_cc_level_output, com_probe_wire_word, com_probe_memory_word,
   com_probe_wire_bit, com_probe_memory_bit, com_counter, com_register_word,
   com_register_word_config, com_delay_line_bit, com_delay_line_word,
-  com_delay_line_word_asm, com_delay_line_word_config, com_register_bit, com_ram,
+  com_probe_wire_asm, com_delay_line_word_config, com_register_bit, com_ram,
 }
 const VISUAL_VALUE_KINDS* = {
   com_level_input_word, com_level_input_switched, com_level_output_word,
@@ -154,7 +154,7 @@ const VISUAL_VALUE_KINDS* = {
   com_cc_level_input, com_cc_level_output, com_probe_wire_word, com_probe_memory_word,
   com_probe_wire_bit, com_probe_memory_bit, com_counter, com_register_word,
   com_register_word_config, com_delay_line_bit, com_delay_line_word,
-  com_delay_line_word_asm, com_delay_line_word_config, com_register_bit, com_constant,
+  com_probe_wire_asm, com_delay_line_word_config, com_register_bit, com_constant,
   com_static_value, com_static_indexer, com_static_indexer_config,
 }
 const LEVEL_INPUTS* = {
