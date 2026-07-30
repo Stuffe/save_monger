@@ -408,7 +408,7 @@ type Cost* = object
 type Score* = object
   gate*: int
   delay*: int
-  tick*: int
+  cycle*: int
 
 type CostVariantKind* = enum
   cvk_min_gate
