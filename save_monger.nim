@@ -79,6 +79,10 @@ proc parse_state*(
   if result.clock_speed == 0:
     result.clock_speed = 10_000_000
 
+  for component in result.schematic.components.mitems:
+    if component.kind == com_custom and component.custom_id == result.custom_id:
+      component.kind = com_none
+
   while result.custom_id == 0:
     result.custom_id = rand(int.high)
 
