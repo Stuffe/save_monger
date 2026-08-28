@@ -651,6 +651,12 @@ proc `-=`*(a: var Point, b: Point) =
     y: cast[int16](cast[uint16](a.y) - cast[uint16](b.y)),
   )
 
+proc `*`*(a: Point, b: Point): Point =
+  return Point(
+    x: a.x * b.x,
+    y: a.y * b.y,
+  )
+
 proc `*`*(a: Point, b: int16): Point =
   return Point(
     x: cast[int16](cast[uint16](a.x) * cast[uint16](b)),
