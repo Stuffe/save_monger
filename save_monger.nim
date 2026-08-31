@@ -1,6 +1,8 @@
 import os, random, sets
 import libraries/supersnappy/supersnappy
-import common, versions/[v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16]
+import
+  common,
+  versions/[v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16]
 export common
 
 const LATES_VERSION* = 16'u8
@@ -25,7 +27,6 @@ proc file_get_bytes*(orig_file_name: string, alternative_name = ""): seq[uint8] 
       file_name = alternative_name
     else:
       return
-
 
   # Since the game loads files from 2 different threads, we can't assume the file isn't locked (on Windows)
 
@@ -56,26 +57,45 @@ proc parse_state*(
     result.version = input[0]
 
     try:
-      case result.version:
-        of 0: v0.parse(input, headers_only, solution, result)
-        of 1: v1.parse(input, headers_only, solution, result)
-        of 2: v2.parse(input, headers_only, solution, result)
-        of 3: v3.parse(input, headers_only, solution, result)
-        of 4: v4.parse(input, headers_only, solution, result)
-        of 5: v5.parse(input, headers_only, solution, result)
-        of 6: v6.parse(input, headers_only, solution, result)
-        of 7: v7.parse(input, headers_only, solution, result)
-        of 8: v8.parse(input, headers_only, solution, result)
-        of 9: v9.parse(input, headers_only, solution, result)
-        of 10: v10.parse(input, headers_only, solution, result)
-        of 11: v11.parse(input, headers_only, solution, result)
-        of 12: v12.parse(input, headers_only, solution, result)
-        of 13: v13.parse(input, headers_only, solution, result)
-        of 14: v14.parse(input, headers_only, solution, result)
-        of 15: v15.parse(input, headers_only, solution, result)
-        of 16: v16.parse(input, headers_only, solution, result)
-        else: discard
-    except CatchableError, IndexDefect, RangeDefect: discard
+      case result.version
+      of 0:
+        v0.parse(input, headers_only, solution, result)
+      of 1:
+        v1.parse(input, headers_only, solution, result)
+      of 2:
+        v2.parse(input, headers_only, solution, result)
+      of 3:
+        v3.parse(input, headers_only, solution, result)
+      of 4:
+        v4.parse(input, headers_only, solution, result)
+      of 5:
+        v5.parse(input, headers_only, solution, result)
+      of 6:
+        v6.parse(input, headers_only, solution, result)
+      of 7:
+        v7.parse(input, headers_only, solution, result)
+      of 8:
+        v8.parse(input, headers_only, solution, result)
+      of 9:
+        v9.parse(input, headers_only, solution, result)
+      of 10:
+        v10.parse(input, headers_only, solution, result)
+      of 11:
+        v11.parse(input, headers_only, solution, result)
+      of 12:
+        v12.parse(input, headers_only, solution, result)
+      of 13:
+        v13.parse(input, headers_only, solution, result)
+      of 14:
+        v14.parse(input, headers_only, solution, result)
+      of 15:
+        v15.parse(input, headers_only, solution, result)
+      of 16:
+        v16.parse(input, headers_only, solution, result)
+      else:
+        discard
+    except CatchableError, IndexDefect, RangeDefect:
+      discard
 
   if result.clock_speed == 0:
     result.clock_speed = 10_000_000
@@ -153,9 +173,6 @@ proc state_to_binary*(
     menu_visible: bool,
     clock_speed: uint64,
     description: string,
-    hub_id: uint32,
-    hub_description: string,
-    synced = unsynced,
     player_data = newSeq[uint8](),
 ): seq[uint8] =
   var dependencies: seq[int]
@@ -176,22 +193,23 @@ proc state_to_binary*(
     new_components.add(component)
 
   for _, wire in schematic.wires:
-    if is_tombstone(wire): continue
+    if is_tombstone(wire):
+      continue
     new_wires.add(wire)
 
   var res: seq[uint8]
   res.add_i64(custom_id)
-  res.add_u32(hub_id)
+  res.add_u32(0) # Previously hub description, now unused
   res.add_i64(gate)
   res.add_i64(delay)
   res.add_bool(menu_visible)
   res.add_u64(clock_speed)
   res.add_seq_int(dependencies)
   res.add_string(description)
-  res.add_sync_state(synced)
+  res.add_u8(0) # Previously sync states, now unused
   res.add_u16(0'u16) # Eventually used for architecture score
   res.add_seq_u8(player_data)
-  res.add_string(hub_description)
+  res.add_string("") # Previously hub description, now unused
 
   if custom_id != 0:
     for i in 0 ..< 32:

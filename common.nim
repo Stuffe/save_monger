@@ -316,11 +316,6 @@ func new_permanent_id*(): PermanentID =
 func is_valid*(id: PermanentID): bool =
   return id.value != 0
 
-type SyncState* = enum
-  unsynced
-  synced
-  changed_after_sync
-
 type WireRuntimeKind* = enum
   r_normal
   r_short_circuit
@@ -604,8 +599,6 @@ type ParseResult* = object
   version*: uint8
   schematic*: Schematic
   custom_id*: int
-  hub_id*: uint32
-  hub_description*: string
   gate*: int
   delay*: int
   menu_visible*: bool
@@ -613,7 +606,6 @@ type ParseResult* = object
   dependencies*: seq[int]
   description*: string
   player_data*: seq[uint8]
-  synced*: SyncState
   design*: array[32, array[32, uint8]]
 
 proc length*(seg: Segment): uint16 =
@@ -1021,12 +1013,6 @@ proc add_point*(arr: var seq[uint8], input: Point) =
 
 proc get_point*(arr: openArray[uint8], i: var int): Point =
   return Point(x: get_i16(arr, i), y: get_i16(arr, i))
-
-proc add_sync_state*(arr: var seq[uint8], input: SyncState) =
-  arr.add(ord(input).uint8)
-
-proc get_sync_state*(arr: openArray[uint8], i: var int): SyncState =
-  result = SyncState(get_u8(arr, i))
 
 proc add_component_kind*(arr: var seq[uint8], input: ComponentKind) =
   arr.add_u16(ord(input).uint16)

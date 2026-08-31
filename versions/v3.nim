@@ -95,7 +95,7 @@ proc parse*(compressed: seq[uint8], headers_only: bool, solution: bool, parse_re
   parse_result.dependencies = get_seq_int(bytes, i)
   parse_result.description = get_string(bytes, i)
   discard get_point(bytes, i)
-  parse_result.synced = get_sync_state(bytes, i)
+  discard get_u8(bytes, i)
   discard get_bool(bytes, i)
   discard get_bool(bytes, i) # Eventually used for architecture score
   parse_result.player_data = get_seq_u8(bytes, i)

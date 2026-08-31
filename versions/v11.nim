@@ -130,7 +130,7 @@ proc parse*(compressed: seq[uint8], headers_only: bool, solution: bool, parse_re
   var i = 0
 
   parse_result.custom_id = get_i64(bytes, i)
-  parse_result.hub_id = get_u32(bytes, i)
+  discard get_u32(bytes, i)
   parse_result.gate = get_i64(bytes, i)
   parse_result.delay = get_i64(bytes, i)
   parse_result.menu_visible = get_bool(bytes, i)
@@ -138,10 +138,10 @@ proc parse*(compressed: seq[uint8], headers_only: bool, solution: bool, parse_re
   parse_result.dependencies = get_seq_int(bytes, i)
   parse_result.description = get_string(bytes, i)
   discard get_point(bytes, i)
-  parse_result.synced = get_sync_state(bytes, i)
+  discard get_u8(bytes, i)
   discard get_u16(bytes, i) # Eventually used for architecture score
   parse_result.player_data = get_seq_u8(bytes, i)
-  parse_result.hub_description = get_string(bytes, i)
+  discard get_string(bytes, i)
 
   if not headers_only:
     parse_result.schematic.components = get_components(bytes, i, solution)
