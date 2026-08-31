@@ -109,7 +109,7 @@ func get_wire(input: seq[uint8], i: var int): Wire =
       direction,
     ))
 
-  result.path = new_path(start, segments)
+  result.path = new_path(start, segments).reverse()
 
 func get_wires(input: seq[uint8], i: var int): seq[Wire] =
   let len = get_i64(input, i)

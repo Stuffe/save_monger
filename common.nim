@@ -1,8 +1,8 @@
 import serialize
 export serialize
 
-import std/[random, strutils, tables]
-export tables
+import std/[algorithm, random, strutils, tables]
+export algorithm, tables
 
 const MAX_BITWIDTH* = 64'u8
 

@@ -1,9 +1,9 @@
 import os, random, sets
 import libraries/supersnappy/supersnappy
-import common, versions/[v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15]
+import common, versions/[v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16]
 export common
 
-const LATES_VERSION* = 15'u8
+const LATES_VERSION* = 16'u8
 
 proc open_when_ready*(file_name: string, mode: FileMode): File =
   # Windows file system is annoying
@@ -73,6 +73,7 @@ proc parse_state*(
         of 13: v13.parse(input, headers_only, solution, result)
         of 14: v14.parse(input, headers_only, solution, result)
         of 15: v15.parse(input, headers_only, solution, result)
+        of 16: v16.parse(input, headers_only, solution, result)
         else: discard
     except CatchableError, IndexDefect, RangeDefect: discard
 

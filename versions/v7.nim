@@ -101,7 +101,8 @@ func get_wire(input: seq[uint8], i: var int): Wire =
   var path: seq[Point]
   path.add(get_point(input, i))
 
-  defer: 
+  defer:
+    path.reverse()
     result.path = point_list_to_path(path)
 
   var segment = get_u8(input, i)

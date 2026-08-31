@@ -10,6 +10,7 @@ func get_seq_point(bytes: seq[uint8], i: var int): seq[Point] =
   let len = get_i64(bytes, i)
   for j in 0..len - 1:
     result.add(get_point(bytes, i))
+  result.reverse()
 
 func get_string(bytes: seq[uint8], i: var int): string =
   let len = get_i64(bytes, i)
